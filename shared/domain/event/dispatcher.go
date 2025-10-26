@@ -10,9 +10,7 @@ type Dispatcher struct {
 }
 
 func NewDispatcher() *Dispatcher {
-	return &Dispatcher{
-		handlers: make(map[string][]Handler),
-	}
+	return &Dispatcher{handlers: make(map[string][]Handler)}
 }
 
 func (d *Dispatcher) Register(eventName string, handler Handler) {
@@ -22,15 +20,55 @@ func (d *Dispatcher) Register(eventName string, handler Handler) {
 }
 
 func (d *Dispatcher) Dispatch(event interface{}) {
+	if event == nil {
+		return
+	}
+
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	switch e := event.(type) {
-	case interface{ EventName() string }:
-		if handlers, ok := d.handlers[e.EventName()]; ok {
-			for _, h := range handlers {
-				go h(e)
-			}
-		}
+	ev, ok := event.(Event)
+	if !ok {
+		return
 	}
+
+	handlers, ok := d.handlers[ev.EventName()]
+	if !ok || len(handlers) == 0 {
+		return
+	}
+
+	for _, h := range handlers {
+		go func(handler Handler, e interface{}) {
+			defer func() { recover() }()
+			handler(e)
+		}(h, event)
+	}
+
+}
+
+func (d *Dispatcher) DispatchSync(event interface{}) {
+	if event == nil {
+		return
+	}
+
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	ev, ok := event.(Event)
+	if !ok {
+		return
+	}
+
+	handlers, ok := d.handlers[ev.EventName()]
+	if !ok || len(handlers) == 0 {
+		return
+	}
+
+	for _, h := range handlers {
+		func(handler Handler, e interface{}) {
+			defer func() { recover() }()
+			handler(e)
+		}(h, event)
+	}
+
 }

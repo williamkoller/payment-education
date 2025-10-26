@@ -1,4 +1,4 @@
-package event
+package user_event
 
 import "time"
 
@@ -10,10 +10,10 @@ type UserCreatedEvent struct {
 }
 
 func NewUserCreatedEvent(id, name, email string) *UserCreatedEvent {
-	return &UserCreatedEvent{UserID: id, Name: name, Email: email}
+	return &UserCreatedEvent{UserID: id, Name: name, Email: email, Date: time.Now()}
 }
 
-func(e *UserCreatedEvent) EventName() string {
+func (e *UserCreatedEvent) EventName() string {
 	return "user.created"
 }
 

@@ -1,5 +1,10 @@
 package user_entity
 
+import (
+	user_event "github.com/williamkoller/system-education/internal/user/domain/event"
+	shared_event "github.com/williamkoller/system-education/shared/domain/event"
+)
+
 type User struct {
 	ID          string
 	Name        string
@@ -10,26 +15,32 @@ type User struct {
 	Password    string
 	Roles       []string
 	Permissions []string
+
+	domainEvents []shared_event.Event
 }
 
 func NewUser(u *User) *User {
-	user, err := ValidationUser(u)
+	uv, err := ValidationUser(u)
 
 	if err != nil {
 		return nil
 	}
 
-	return &User{
-		ID:          user.ID,
-		Name:        user.Name,
-		Surname:     user.Surname,
-		Nickname: user.Nickname,
-		Age:         user.Age,
-		Email:       user.Email,
-		Password:    user.Password,
-		Roles:       user.Roles,
-		Permissions: user.Permissions,
+	user := &User{
+		ID:          uv.ID,
+		Name:        uv.Name,
+		Surname:     uv.Surname,
+		Nickname:    uv.Nickname,
+		Age:         uv.Age,
+		Email:       uv.Email,
+		Password:    uv.Password,
+		Roles:       uv.Roles,
+		Permissions: uv.Permissions,
 	}
+
+	user.AddDomainEvent(user_event.NewUserCreatedEvent(user.ID, user.Name, user.Email))
+
+	return user
 }
 
 func (u *User) GetID() string {
@@ -62,4 +73,17 @@ func (u *User) GetRoles() []string {
 
 func (u *User) GetPermissions() []string {
 	return u.Permissions
+}
+
+func (u *User) AddDomainEvent(e shared_event.Event) {
+	u.domainEvents = append(u.domainEvents, e)
+}
+
+func (u *User) PullDomainEvents() []shared_event.Event {
+	if u == nil {
+		return nil
+	}
+	events := u.domainEvents
+	u.domainEvents = []shared_event.Event{}
+	return events
 }
