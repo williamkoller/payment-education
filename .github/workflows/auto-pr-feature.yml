@@ -3,8 +3,8 @@ name: Auto PR for Feature Branches
 on:
   push:
     branches:
-      - 'feature/**' # Roda quando há push em branches feature/
-  create: # Também roda quando a branch é criada
+      - 'feature/**'
+  create:
 
 permissions:
   contents: write
@@ -32,6 +32,7 @@ jobs:
       - name: Criar Pull Request automaticamente (se não existir)
         if: steps.check_pr.outputs.pr_count == '0'
         uses: peter-evans/create-pull-request@v6
+        id: cpr
         with:
           token: ${{ secrets.BOT_TOKEN }}
           branch: ${{ github.ref_name }}
@@ -47,8 +48,21 @@ jobs:
             feature
           draft: false
 
+      - name: Esperar o PR ser indexado
+        if: steps.check_pr.outputs.pr_count == '0'
+        run: sleep 5
+
       - name: Adicionar revisores automaticamente
         if: steps.check_pr.outputs.pr_count == '0'
         run: |
+          echo "Buscando PR recém-criado..."
           PR_NUMBER=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number')
-          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" --add-reviewer williamkoller --add-reviewer SeuTimeAqui
+          echo "PR encontrado: #$PR_NUMBER"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "⚠️ Nenhum PR encontrado para esta branch."
+            exit 0
+          fi
+          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" \
+            --add-reviewer williamkoller \
+            --add-reviewer SeuTimeAqui \
+            --add-label "review needed"
