@@ -3,18 +3,24 @@ name: Auto PR for Feature Branches
 on:
   push:
     branches:
-      - 'feature/**'
+      - 'feature/**' # Quando há push em feature/...
+  create: # E também quando uma branch é criada
+
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
   create_pr:
+    if: startsWith(github.ref, 'refs/heads/feature/')
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
+
+      - name: Instalar GitHub CLI
+        run: sudo apt-get install -y gh
 
       - name: Verificar se já existe PR aberto
         id: check_pr
@@ -35,7 +41,8 @@ jobs:
           body: |
             🚀 PR automático criado para a branch **${{ github.ref_name }}**
             - Criado por: `${{ github.actor }}`
-            - Data: `${{ github.event.head_commit.timestamp }}`
+            - Evento: `${{ github.event_name }}`
+            - Data: `${{ github.event.repository.updated_at }}`
           labels: |
             automated
             feature
