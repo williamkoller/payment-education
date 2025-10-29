@@ -16,7 +16,6 @@ import (
 func main() {
 	g := gin.Default()
 
-	g.Use((gin.Logger()))
 	g.Use(gin.Recovery())
 
 	user_router.UserRouter(g)
@@ -27,6 +26,7 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
+	log.Println("Server running at http://localhost:8080")
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
