@@ -1,0 +1,43 @@
+name: Auto PR for Feature Branches
+
+on:
+  push:
+    branches:
+      - 'feature/**' # Só dispara para branches feature/
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Verificar se já existe PR aberto
+        id: check_pr
+        run: |
+          PR_COUNT=$(gh pr list --head "${{ github.ref_name }}" --base main --json number --jq 'length')
+          echo "pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: Criar Pull Request automaticamente (se não existir)
+        if: steps.check_pr.outputs.pr_count == '0'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          branch: ${{ github.ref_name }}
+          base: main
+          title: 'feat: Auto PR from ${{ github.ref_name }}'
+          body: |
+            🚀 PR automático criado para a branch **${{ github.ref_name }}**
+            - Criado por: `${{ github.actor }}`
+            - Data: `${{ github.event.head_commit.timestamp }}`
+          labels: |
+            automated
+            feature
+          draft: false
