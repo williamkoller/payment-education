@@ -1,0 +1,67 @@
+name: Auto PR for Feature Branches
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+  create:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create_pr:
+    if: startsWith(github.ref, 'refs/heads/feature/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar GitHub CLI
+        run: sudo apt-get install -y gh
+
+      - name: Verificar se já existe PR aberto
+        id: check_pr
+        run: |
+          gh auth status || echo "Autenticando GH CLI..."
+          PR_COUNT=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq 'length')
+          echo "pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Criar Pull Request automaticamente (se não existir)
+        if: steps.check_pr.outputs.pr_count == '0'
+        uses: peter-evans/create-pull-request@v6
+        id: cpr
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          branch: ${{ github.ref_name }}
+          base: main
+          title: 'feat: Auto PR from ${{ github.ref_name }}'
+          body: |
+            🚀 PR automático criado para a branch **${{ github.ref_name }}**
+            - Criado por: `${{ github.actor }}`
+            - Evento: `${{ github.event_name }}`
+            - Data: `${{ github.event.repository.updated_at }}`
+          labels: |
+            automated
+            feature
+          draft: false
+
+      - name: Esperar o PR ser indexado
+        if: steps.check_pr.outputs.pr_count == '0'
+        run: sleep 5
+
+      - name: Adicionar revisores automaticamente
+        if: steps.check_pr.outputs.pr_count == '0'
+        run: |
+          echo "Buscando PR recém-criado..."
+          PR_NUMBER=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number')
+          echo "PR encontrado: #$PR_NUMBER"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "⚠️ Nenhum PR encontrado para esta branch."
+            exit 0
+          fi
+          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" \
+            --add-reviewer williamkoller \
+            --add-label "review needed"
