@@ -64,5 +64,4 @@ jobs:
           fi
           GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" \
             --add-reviewer williamkoller \
-            --add-reviewer SeuTimeAqui \
             --add-label "review needed"
