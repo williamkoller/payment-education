@@ -3,8 +3,8 @@ name: Auto PR for Feature Branches
 on:
   push:
     branches:
-      - 'feature/**'
-  create:
+      - 'feature/**' # Roda quando há push em branches feature/
+  create: # Também roda quando a branch é criada
 
 permissions:
   contents: write
@@ -22,18 +22,12 @@ jobs:
       - name: Instalar GitHub CLI
         run: sudo apt-get install -y gh
 
-      - name: Autenticar CLI do GitHub
-        run: gh auth login --with-token <<< "${{ secrets.BOT_TOKEN }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
-
       - name: Verificar se já existe PR aberto
         id: check_pr
         run: |
-          PR_COUNT=$(gh pr list --head "${{ github.ref_name }}" --base main --json number --jq 'length')
+          gh auth status || echo "Autenticando GH CLI..."
+          PR_COUNT=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq 'length')
           echo "pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Criar Pull Request automaticamente (se não existir)
         if: steps.check_pr.outputs.pr_count == '0'
@@ -45,4 +39,16 @@ jobs:
           title: 'feat: Auto PR from ${{ github.ref_name }}'
           body: |
             🚀 PR automático criado para a branch **${{ github.ref_name }}**
-            - Criad
+            - Criado por: `${{ github.actor }}`
+            - Evento: `${{ github.event_name }}`
+            - Data: `${{ github.event.repository.updated_at }}`
+          labels: |
+            automated
+            feature
+          draft: false
+
+      - name: Adicionar revisores automaticamente
+        if: steps.check_pr.outputs.pr_count == '0'
+        run: |
+          PR_NUMBER=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number')
+          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" --add-reviewer williamkoller --add-reviewer SeuTimeAqui
