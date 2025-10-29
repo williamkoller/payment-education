@@ -3,8 +3,8 @@ name: Auto PR for Feature Branches
 on:
   push:
     branches:
-      - 'feature/**' # Quando há push em feature/...
-  create: # E também quando uma branch é criada
+      - 'feature/**'
+  create:
 
 permissions:
   contents: write
@@ -21,6 +21,11 @@ jobs:
 
       - name: Instalar GitHub CLI
         run: sudo apt-get install -y gh
+
+      - name: Autenticar CLI do GitHub
+        run: gh auth login --with-token <<< "${{ secrets.BOT_TOKEN }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Verificar se já existe PR aberto
         id: check_pr
@@ -40,10 +45,4 @@ jobs:
           title: 'feat: Auto PR from ${{ github.ref_name }}'
           body: |
             🚀 PR automático criado para a branch **${{ github.ref_name }}**
-            - Criado por: `${{ github.actor }}`
-            - Evento: `${{ github.event_name }}`
-            - Data: `${{ github.event.repository.updated_at }}`
-          labels: |
-            automated
-            feature
-          draft: false
+            - Criad
