@@ -25,38 +25,41 @@ jobs:
       - name: Verificar se já existe PR aberto
         id: check_pr
         run: |
-          gh auth status || echo "Autenticando GH CLI..."
-          PR_COUNT=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq 'length')
-          echo "pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
-
-      - name: Criar Pull Request automaticamente (se não existir)
-        run: |
-          echo "Criando PR para a branch: ${{ github.ref_name }}"
-          if gh pr view ${{ github.ref_name }} --base main > /dev/null 2>&1; then
-            echo "⚠️ PR já existe para a branch: ${{ github.ref_name }}"
+          echo "Verificando se já existe PR para a branch ${{ github.ref_name }}..."
+          if GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr view "${{ github.ref_name }}" --base main > /dev/null 2>&1; then
+            echo "PR já existe para a branch ${{ github.ref_name }}"
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr create \
-              --base main \
-              --head "${{ github.ref_name }}" \
-              --title "feat: Auto PR from ${{ github.ref_name }}" \
-              --body "🚀 PR automático criado para a branch **${{ github.ref_name }}**
-              
-              - Criado por: \`${{ github.actor }}\`
-              - Evento: \`${{ github.event_name }}\`
-              - Data: \`${{ github.event.repository.updated_at }}\`" \
-              --label "feature" \
-              --draft=false
+            echo "Nenhum PR encontrado, será criado um novo."
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
+      - name: Criar Pull Request automaticamente
+        if: steps.check_pr.outputs.exists == 'false'
+        run: |
+          echo "Criando PR para a branch: ${{ github.ref_name }}"
+          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr create \
+            --base main \
+            --head "${{ github.ref_name }}" \
+            --title "feat: Auto PR from ${{ github.ref_name }}" \
+            --body "PR automático criado para a branch **${{ github.ref_name }}**
+            
+            - Criado por: \`${{ github.actor }}\`
+            - Evento: \`${{ github.event_name }}\`
+            - Data: \`${{ github.event.repository.updated_at }}\`" \
+            --label "feature" \
+            --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Esperar o PR ser indexado
-        if: steps.check_pr.outputs.pr_count == '0'
+        if: steps.check_pr.outputs.exists == 'false'
         run: sleep 5
 
       - name: Adicionar revisores automaticamente
-        if: steps.check_pr.outputs.pr_count == '0'
+        if: steps.check_pr.outputs.exists == 'false'
         run: |
           echo "Buscando PR recém-criado..."
           PR_NUMBER=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number')
@@ -66,4 +69,6 @@ jobs:
             exit 0
           fi
           GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" \
-            --add-reviewer williamkoller \
+            --add-reviewer williamkoller
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
