@@ -1,4 +1,4 @@
-name: Go Build, Test & Codecov
+name: Go CI & Codecov
 
 on:
   push:
@@ -14,66 +14,37 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
-    name: Go Build & Test
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configurar Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.25"
 
       - name: Instalar dependências
         run: go mod tidy
 
-      - name: Build
-        run: go build -v ./...
-
       - name: Rodar testes com cobertura
         run: |
           mkdir -p coverage
-          go test -v -covermode=atomic -coverprofile=coverage/coverage.out ./internal/... ./shared/... ./cmd/...
-          go tool cover -func=coverage/coverage.out
+          go test -v -covermode=atomic -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
 
-      - name: Verificar arquivo de cobertura
+      - name: Confirmar conteúdo do arquivo de cobertura
         run: |
-          echo "=== ARQUIVO DE COBERTURA ==="
-          ls -lh coverage/
-          echo ""
-          head -n 15 coverage/coverage.out
-          echo ""
-          echo "=== RESUMO DE COBERTURA ==="
-          go tool cover -func=coverage/coverage.out | tail -n 10
+          echo "=== Tamanho e preview ==="
+          ls -lh coverage.out
+          head -n 15 coverage.out
+          echo "=== Resumo ==="
+          go tool cover -func=coverage.out | tail -n 10
 
-      - name: Upload de cobertura (artefato)
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage/coverage.out
-
-  upload-codecov:
-    name: Upload para Codecov
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    steps:
-      - name: Baixar artefatos de cobertura
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage
-          path: coverage
-
-      - name: Listar arquivos baixados
-        run: ls -lh coverage
-
-      - name: Upload para Codecov
+      - name: Upload cobertura para Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: "coverage/coverage.out"
+          token: ${{ secrets.CODECOV_TOKEN }} 
+          file: coverage.out
           flags: unittests
           verbose: true
           fail_ci_if_error: true
