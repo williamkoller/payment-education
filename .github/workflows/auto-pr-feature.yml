@@ -42,7 +42,7 @@ jobs:
             - Criado por: \`${{ github.actor }}\`
             - Evento: \`${{ github.event_name }}\`
             - Data: \`${{ github.event.repository.updated_at }}\`" \
-            --label "automated,feature" \
+            --label "feature" \
             --draft=false
 
       - name: Esperar o PR ser indexado
