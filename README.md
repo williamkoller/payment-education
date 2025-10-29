@@ -1,4 +1,3 @@
-[![codecov](https://codecov.io/github/williamkoller/payment-education/graph/badge.svg?token=JG4FZ7Y95O)](https://codecov.io/github/williamkoller/payment-education)
-
+[![codecov](https://codecov.io/github/williamkoller/payment-system/graph/badge.svg?token=NXB84FNDRR)](https://codecov.io/github/williamkoller/payment-system)
 # Payment Education
 
