@@ -36,11 +36,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
-      - name: Criar Pull Request automaticamente
+      - name: Criar Pull Request automaticamente (se não existir)
         if: steps.check_pr.outputs.exists == 'false'
         run: |
           echo "Criando PR para a branch: ${{ github.ref_name }}"
-          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr create \
+          if GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr create \
             --base main \
             --head "${{ github.ref_name }}" \
             --title "feat: Auto PR from ${{ github.ref_name }}" \
@@ -50,7 +50,11 @@ jobs:
             - Evento: \`${{ github.event_name }}\`
             - Data: \`${{ github.event.repository.updated_at }}\`" \
             --label "feature" \
-            --draft=false
+            --draft=false; then
+            echo "PR criado com sucesso."
+          else
+            echo "PR já existe para a branch: ${{ github.ref_name }}, pulando criação."
+          fi
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
@@ -65,7 +69,7 @@ jobs:
           PR_NUMBER=$(GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number')
           echo "PR encontrado: #$PR_NUMBER"
           if [ -z "$PR_NUMBER" ]; then
-            echo "⚠️ Nenhum PR encontrado para esta branch."
+            echo "Nenhum PR encontrado para esta branch."
             exit 0
           fi
           GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" \
