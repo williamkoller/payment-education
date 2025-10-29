@@ -4,22 +4,19 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
   pull_request:
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
 
 permissions:
   contents: read
 
 jobs:
   build-and-test:
-    name: Go ${{ matrix.go-version }} Build & Test
+    name: Go Build & Test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.25']
 
     steps:
       - name: Checkout do código
@@ -28,46 +25,55 @@ jobs:
       - name: Configurar Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: "1.25"
 
-      - name: Baixar dependências
+      - name: Instalar dependências
         run: go mod tidy
 
-      - name: Rodar build
+      - name: Build
         run: go build -v ./...
 
       - name: Rodar testes com cobertura
         run: |
           mkdir -p coverage
-          go test -v -covermode=atomic -coverprofile=coverage/coverage_${{ matrix.go-version }}.out ./...
+          go test -v -covermode=atomic -coverprofile=coverage/coverage.out ./internal/... ./shared/... ./cmd/...
+          go tool cover -func=coverage/coverage.out
 
-      - name: Corrigir paths no relatório de cobertura
-        run: sed -i "s|$(pwd)/||g" coverage/coverage_${{ matrix.go-version }}.out
-
-      - name: Exibir resumo de cobertura
-        run: go tool cover -func=coverage/coverage_${{ matrix.go-version }}.out
+      - name: Verificar arquivo de cobertura
+        run: |
+          echo "=== ARQUIVO DE COBERTURA ==="
+          ls -lh coverage/
+          echo ""
+          head -n 15 coverage/coverage.out
+          echo ""
+          echo "=== RESUMO DE COBERTURA ==="
+          go tool cover -func=coverage/coverage.out | tail -n 10
 
       - name: Upload de cobertura (artefato)
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.go-version }}
-          path: coverage/coverage_${{ matrix.go-version }}.out
+          name: coverage
+          path: coverage/coverage.out
 
   upload-codecov:
     name: Upload para Codecov
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Baixar artefatos de cobertura
         uses: actions/download-artifact@v4
         with:
+          name: coverage
           path: coverage
+
+      - name: Listar arquivos baixados
+        run: ls -lh coverage
 
       - name: Upload para Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: 'coverage/*.out'
+          files: "coverage/coverage.out"
           flags: unittests
+          verbose: true
           fail_ci_if_error: true
