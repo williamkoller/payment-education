@@ -31,22 +31,19 @@ jobs:
 
       - name: Criar Pull Request automaticamente (se não existir)
         if: steps.check_pr.outputs.pr_count == '0'
-        uses: peter-evans/create-pull-request@v6
-        id: cpr
-        with:
-          token: ${{ secrets.BOT_TOKEN }}
-          branch: ${{ github.ref_name }}
-          base: main
-          title: 'feat: Auto PR from ${{ github.ref_name }}'
-          body: |
-            🚀 PR automático criado para a branch **${{ github.ref_name }}**
-            - Criado por: `${{ github.actor }}`
-            - Evento: `${{ github.event_name }}`
-            - Data: `${{ github.event.repository.updated_at }}`
-          labels: |
-            automated
-            feature
-          draft: false
+        run: |
+          echo "Criando PR para a branch: ${{ github.ref_name }}"
+          GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr create \
+            --base main \
+            --head "${{ github.ref_name }}" \
+            --title "feat: Auto PR from ${{ github.ref_name }}" \
+            --body "🚀 PR automático criado para a branch **${{ github.ref_name }}**
+            
+            - Criado por: \`${{ github.actor }}\`
+            - Evento: \`${{ github.event_name }}\`
+            - Data: \`${{ github.event.repository.updated_at }}\`" \
+            --label "feature" \
+            --draft=false
 
       - name: Esperar o PR ser indexado
         if: steps.check_pr.outputs.pr_count == '0'
@@ -64,4 +61,3 @@ jobs:
           fi
           GH_TOKEN=${{ secrets.BOT_TOKEN }} gh pr edit "$PR_NUMBER" \
             --add-reviewer williamkoller \
-            --add-label "review needed"
