@@ -3,8 +3,7 @@ name: Auto PR for Feature Branches
 on:
   push:
     branches:
-      - 'feature/**' # Só dispara para branches feature/
-
+      - 'feature/**'
 permissions:
   contents: write
   pull-requests: write
