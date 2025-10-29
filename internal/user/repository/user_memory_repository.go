@@ -1,15 +1,10 @@
 package user_repository
 
 import (
-	"errors"
 	"sync"
 
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	port_user_repository "github.com/williamkoller/system-education/internal/user/domain/port/repository"
-)
-
-var (
-	ErrUserNotFound = errors.New("user not found")
 )
 
 type UserMemoryRepository struct {
@@ -37,7 +32,7 @@ func (r *UserMemoryRepository) FindByID(id string) (*user_entity.User, error) {
 	defer r.mu.Unlock()
 	user, exists := r.store[id]
 	if !exists {
-		return nil, ErrUserNotFound
+		return nil, port_user_repository.ErrUserNotFound
 	}
 
 	return user, nil
@@ -61,9 +56,22 @@ func (r *UserMemoryRepository) Delete(id string) error {
 	defer r.mu.Unlock()
 
 	if _, exists := r.store[id]; !exists {
-		return ErrUserNotFound
+		return port_user_repository.ErrUserNotFound
 	}
 
 	delete(r.store, id)
 	return nil
+}
+
+func (r *UserMemoryRepository) FindByEmail(email string) (*user_entity.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	for _, user := range r.store {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+
+	return nil, port_user_repository.ErrUserNotFound
 }

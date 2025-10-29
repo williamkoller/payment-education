@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
+	port_user_repository "github.com/williamkoller/system-education/internal/user/domain/port/repository"
 	user_repository "github.com/williamkoller/system-education/internal/user/repository"
 )
 
@@ -40,7 +41,7 @@ func TestUserMemoryRepository_FindByID_NotFound(t *testing.T) {
 
 	_, err := repo.FindByID("nonexistent")
 	assert.Error(t, err)
-	assert.Equal(t, user_repository.ErrUserNotFound, err)
+	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
 }
 
 func TestUserMemoryRepository_FindAll(t *testing.T) {
@@ -64,7 +65,7 @@ func TestUserMemoryRepository_Delete(t *testing.T) {
 
 	_, err = repo.FindByID("u1")
 	assert.Error(t, err)
-	assert.Equal(t, user_repository.ErrUserNotFound, err)
+	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
 }
 
 func TestUserMemoryRepository_Delete_NotFound(t *testing.T) {
@@ -88,5 +89,5 @@ func TestUserMemoryRepository_Delete_NotFound(t *testing.T) {
 
 	err = repo.Delete("u1")
 	assert.Error(t, err)
-	assert.Equal(t, user_repository.ErrUserNotFound, err)
+	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
 }
