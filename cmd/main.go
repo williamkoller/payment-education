@@ -11,12 +11,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	user_router "github.com/williamkoller/system-education/internal/user/router"
+	"github.com/williamkoller/system-education/shared/middleware"
 )
 
 func main() {
 	g := gin.Default()
 
 	g.Use(gin.Recovery())
+	g.Use(middleware.GlobalErrorHandler())
 
 	user_router.UserRouter(g)
 
