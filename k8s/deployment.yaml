@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: system-education
+  labels:
+    app: system-education
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: system-education
+  template:
+    metadata:
+      labels:
+        app: system-education
+    spec:
+      containers:
+        - name: system-education
+          image: williamkoller/system-education:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '500m'
+              memory: '256Mi'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: system-education
+  labels:
+    app: system-education
+spec:
+  selector:
+    app: system-education
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080
+  type: NodePort
