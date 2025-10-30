@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: system-education
+  labels:
+    app: system-education
+spec:
+  selector:
+    app: system-education
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080
+  type: NodePort
