@@ -7,5 +7,6 @@ import (
 
 type UserUsecase interface {
 	Create(input dtos.AddUserDto) (*user_entity.User, error)
+	FindAll() ([]*user_entity.User, error)
 }
 

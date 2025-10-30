@@ -34,7 +34,19 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	res := user_mapper.ToResponse(user)
+	res := user_mapper.ToUser(user)
 
 	c.JSON(http.StatusCreated, res)
+}
+
+func (h *UserHandler) FindAllUsers(c *gin.Context) {
+	users, err := h.usecase.FindAll()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	resp := user_mapper.ToUsers(users)
+
+	c.JSON(http.StatusOK, resp)
 }

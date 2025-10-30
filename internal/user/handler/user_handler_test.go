@@ -25,6 +25,13 @@ func (m *MockUserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, erro
 	return user, args.Error(1)
 }
 
+func (m *MockUserUsecase) FindAll() ([]*user_entity.User, error) {
+	args := m.Called()
+
+	users, _ := args.Get(0).([]*user_entity.User)
+	return users, args.Error(1)
+}
+
 func TestCreateUser_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
