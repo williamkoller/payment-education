@@ -14,5 +14,6 @@ func UserRouter(e *gin.Engine) {
 	users := e.Group("/users")
 	{
 		users.POST("", userHandler.CreateUser)
+		users.GET("", userHandler.FindAllUsers)
 	}
 }
