@@ -24,29 +24,30 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var input dtos.AddUserDto
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Status(http.StatusBadRequest)
+		c.Error(err).SetType(gin.ErrorTypePublic)
 		return
 	}
 
 	user, err := h.usecase.Create(input)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Status(http.StatusBadRequest)
+		c.Error(err).SetType(gin.ErrorTypePublic)
 		return
 	}
 
 	res := user_mapper.ToUser(user)
-
 	c.JSON(http.StatusCreated, res)
 }
 
 func (h *UserHandler) FindAllUsers(c *gin.Context) {
 	users, err := h.usecase.FindAll()
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Status(http.StatusInternalServerError)
+		c.Error(err).SetType(gin.ErrorTypePublic)
+		return
 	}
 
 	resp := user_mapper.ToUsers(users)
-
 	c.JSON(http.StatusOK, resp)
 }

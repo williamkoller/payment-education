@@ -13,5 +13,17 @@ cover:
 	@go tool cover -html=coverage.out -o coverage.html
 
 
-server:
-	@go run cmd/main.go
+docker-build:
+	docker build -t williamkoller/system-education:latest .
+
+k8s-restart:
+	kubectl rollout restart deployment system-education
+
+minikube-launch:
+	minikube service system-education
+
+k8s-apply:
+	kubectl apply -k k8s/
+
+run-all:
+	make docker-build && make k8s-apply && make k8s-restart && make minikube-launch
