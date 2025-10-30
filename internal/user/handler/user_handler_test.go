@@ -13,6 +13,7 @@ import (
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	"github.com/williamkoller/system-education/internal/user/dtos"
 	user_handler "github.com/williamkoller/system-education/internal/user/handler"
+	"github.com/williamkoller/system-education/shared/middleware"
 )
 
 type MockUserUsecase struct {
@@ -27,9 +28,15 @@ func (m *MockUserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, erro
 
 func (m *MockUserUsecase) FindAll() ([]*user_entity.User, error) {
 	args := m.Called()
-
 	users, _ := args.Get(0).([]*user_entity.User)
 	return users, args.Error(1)
+}
+
+func setupRouter(h *user_handler.UserHandler) *gin.Engine {
+	r := gin.New()
+	r.Use(middleware.GlobalErrorHandler())
+	r.POST("/users", h.CreateUser)
+	return r
 }
 
 func TestCreateUser_Success(t *testing.T) {
@@ -37,9 +44,7 @@ func TestCreateUser_Success(t *testing.T) {
 
 	mockUsecase := new(MockUserUsecase)
 	h := user_handler.NewUserHandler(mockUsecase)
-
-	router := gin.New()
-	router.POST("/users", h.CreateUser)
+	router := setupRouter(h)
 
 	body := []byte(`{
 		"name": "Alice",
@@ -81,9 +86,7 @@ func TestCreateUser_InvalidPayload(t *testing.T) {
 
 	mockUsecase := new(MockUserUsecase)
 	h := user_handler.NewUserHandler(mockUsecase)
-
-	router := gin.New()
-	router.POST("/users", h.CreateUser)
+	router := setupRouter(h)
 
 	body := []byte(`{invalid json}`)
 
@@ -102,9 +105,7 @@ func TestCreateUser_UsecaseError(t *testing.T) {
 
 	mockUsecase := new(MockUserUsecase)
 	h := user_handler.NewUserHandler(mockUsecase)
-
-	router := gin.New()
-	router.POST("/users", h.CreateUser)
+	router := setupRouter(h)
 
 	body := []byte(`{
 		"name": "Alice",
@@ -126,5 +127,5 @@ func TestCreateUser_UsecaseError(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Contains(t, w.Body.String(), `"error"`)
+	assert.Contains(t, w.Body.String(), `"email already exists"`)
 }
