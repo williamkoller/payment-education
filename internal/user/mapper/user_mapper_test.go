@@ -7,7 +7,7 @@ import (
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 )
 
-func TestToResponse(t *testing.T) {
+func TestToUser(t *testing.T) {
 	user := &user_entity.User{
 		ID:          "u1",
 		Name:        "Alice",
@@ -19,7 +19,7 @@ func TestToResponse(t *testing.T) {
 		Permissions: []string{"create", "update"},
 	}
 
-	resp := ToResponse(user)
+	resp := ToUser(user)
 
 	assert.NotNil(t, resp)
 	assert.Equal(t, user.ID, resp.ID)

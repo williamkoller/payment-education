@@ -13,15 +13,25 @@ type UserResponse struct {
 	Permissions []string `json:"permissions"`
 }
 
-func ToResponse(d *user_entity.User) *UserResponse {
+func ToUser(d *user_entity.User) *UserResponse {
 	return &UserResponse{
-		ID: d.ID,
-		Name: d.Name,
-		Surname: d.Surname,
-		Nickname: d.Nickname,
-		Email: d.Email,
-		Age: d.Age,
-		Roles: d.Roles,
+		ID:          d.ID,
+		Name:        d.Name,
+		Surname:     d.Surname,
+		Nickname:    d.Nickname,
+		Email:       d.Email,
+		Age:         d.Age,
+		Roles:       d.Roles,
 		Permissions: d.Permissions,
 	}
+}
+
+func ToUsers(users []*user_entity.User) []*UserResponse {
+	responses := make([]*UserResponse, 0, len(users))
+
+	for _, u := range users {
+		responses = append(responses, ToUser(u))
+	}
+
+	return responses
 }

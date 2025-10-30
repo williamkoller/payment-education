@@ -56,3 +56,13 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 	return newUser, nil
 
 }
+
+func (u *UserUsecase) FindAll() ([]*user_entity.User, error) {
+	users, err := u.repo.FindAll()
+
+	if err != nil {
+		return nil, errors.New("error in findAll users")
+	}
+
+	return users, nil
+}
