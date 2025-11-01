@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	port_user_repository "github.com/williamkoller/system-education/internal/user/domain/port/repository"
 	"github.com/williamkoller/system-education/internal/user/dtos"
+	"github.com/williamkoller/system-education/internal/user/port/repository"
 	user_usecase "github.com/williamkoller/system-education/internal/user/usecase"
 )
 

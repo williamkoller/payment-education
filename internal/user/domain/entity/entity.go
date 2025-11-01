@@ -20,22 +20,22 @@ type User struct {
 }
 
 func NewUser(u *User) *User {
-	uv, err := ValidationUser(u)
+	vu, err := ValidationUser(u)
 
 	if err != nil {
 		return nil
 	}
 
 	user := &User{
-		ID:          uv.ID,
-		Name:        uv.Name,
-		Surname:     uv.Surname,
-		Nickname:    uv.Nickname,
-		Age:         uv.Age,
-		Email:       uv.Email,
-		Password:    uv.Password,
-		Roles:       uv.Roles,
-		Permissions: uv.Permissions,
+		ID:          vu.ID,
+		Name:        vu.Name,
+		Surname:     vu.Surname,
+		Nickname:    vu.Nickname,
+		Age:         vu.Age,
+		Email:       vu.Email,
+		Password:    vu.Password,
+		Roles:       vu.Roles,
+		Permissions: vu.Permissions,
 	}
 
 	user.AddDomainEvent(user_event.NewUserCreatedEvent(user.ID, user.Name, user.Email))

@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	port_user_handler "github.com/williamkoller/system-education/internal/user/domain/port/handler"
-	port_user_usecase "github.com/williamkoller/system-education/internal/user/domain/port/usecase"
 	"github.com/williamkoller/system-education/internal/user/dtos"
 	user_mapper "github.com/williamkoller/system-education/internal/user/mapper"
+	"github.com/williamkoller/system-education/internal/user/port/handler"
+	"github.com/williamkoller/system-education/internal/user/port/usecase"
 )
 
 type UserHandler struct {
