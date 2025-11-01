@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	port_user_repository "github.com/williamkoller/system-education/internal/user/domain/port/repository"
+	"github.com/williamkoller/system-education/internal/user/port/repository"
 )
 
 type UserMemoryRepository struct {

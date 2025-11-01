@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	port_user_repository "github.com/williamkoller/system-education/internal/user/domain/port/repository"
+	"github.com/williamkoller/system-education/internal/user/port/repository"
 	user_repository "github.com/williamkoller/system-education/internal/user/repository"
 )
 
@@ -21,7 +21,6 @@ func createTestUser(id string) *user_entity.User {
 		Roles:    []string{"user"},
 	}
 }
-
 
 func TestUserMemoryRepository_SaveAndFindByID(t *testing.T) {
 	repo := user_repository.NewUserMemoryRepository()
