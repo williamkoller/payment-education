@@ -27,3 +27,11 @@ k8s-apply:
 
 run-all:
 	make docker-build && make k8s-apply && make k8s-restart && make minikube-launch
+
+migrate-create:
+	@if [ -z "$(name)" ]; then \
+		echo "❌ Erro: você precisa passar o nome da migração. Ex: make migrate-create name=create_users_table"; \
+		exit 1; \
+	else \
+		migrate create -ext sql -dir db/migrations -seq $(name); \
+	fi

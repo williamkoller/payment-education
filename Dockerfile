@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o system-education ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o system-education ./cmd/main.go
 
 FROM alpine:latest
 

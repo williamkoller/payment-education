@@ -16,9 +16,10 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) Save(user *user_entity.User) error {
+func (m *MockUserRepository) Save(user *user_entity.User) (*user_entity.User, error) {
 	args := m.Called(user)
-	return args.Error(0)
+	result, _ := args.Get(0).(*user_entity.User)
+	return result, args.Error(1)
 }
 
 func (m *MockUserRepository) FindByID(id string) (*user_entity.User, error) {

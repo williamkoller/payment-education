@@ -26,7 +26,7 @@ func TestUserMemoryRepository_SaveAndFindByID(t *testing.T) {
 	repo := user_repository.NewUserMemoryRepository()
 	user := createTestUser("u1")
 
-	err := repo.Save(user)
+	_, err := repo.Save(user)
 	assert.NoError(t, err)
 
 	stored, err := repo.FindByID("u1")
@@ -80,7 +80,7 @@ func TestUserMemoryRepository_Delete_NotFound(t *testing.T) {
 		Roles:    []string{"user"},
 	}
 
-	err := repo.Save(user)
+	_, err := repo.Save(user)
 	assert.NoError(t, err)
 
 	err = repo.Delete("u1")

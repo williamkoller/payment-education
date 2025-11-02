@@ -1,0 +1,43 @@
+services:
+  go-system-education:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-system-education
+    depends_on:
+      - go-system-education-db
+    env_file:
+      - .env
+    environment:
+      DB_HOST: go-system-education-db
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+    ports:
+      - ${PORT}:${PORT}
+    networks:
+      - go-system-education-network
+    volumes:
+      - ./db/migrations:/app/db/migrations
+
+  go-system-education-db:
+    container_name: go-system-education-db
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE}
+    image: postgres:14.2-alpine
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks:
+      - go-system-education-network
+    ports:
+      - "5432:5432"
+
+volumes:
+  pg-data:
+
+networks:
+  go-system-education-network:
+    driver: bridge

@@ -6,16 +6,18 @@ import (
 	"github.com/google/uuid"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	"github.com/williamkoller/system-education/internal/user/dtos"
+	port_cryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
 	"github.com/williamkoller/system-education/internal/user/port/repository"
 	"github.com/williamkoller/system-education/internal/user/port/usecase"
 )
 
 type UserUsecase struct {
 	repo port_user_repository.UserRepository
+	crypto port_cryptography.Bcrypt
 }
 
-func NewUserUsecase(repo port_user_repository.UserRepository) *UserUsecase {
-	return &UserUsecase{repo: repo}
+func NewUserUsecase(repo port_user_repository.UserRepository, crypto port_cryptography.Bcrypt) *UserUsecase {
+	return &UserUsecase{repo: repo, crypto: crypto}
 }
 
 var _ port_user_usecase.UserUsecase = &UserUsecase{}
@@ -31,6 +33,12 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 		return nil, err
 	}
 
+	hash, err := u.crypto.Hash(input.Password)
+
+	if err != nil {
+		return nil, err
+	}
+
 	newUser := user_entity.NewUser(&user_entity.User{
 		ID:          uuid.New().String(),
 		Name:        input.Name,
@@ -38,7 +46,7 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 		Nickname:    input.Nickname,
 		Age:         input.Age,
 		Email:       input.Email,
-		Password:    input.Password,
+		Password:    hash,
 		Roles:       input.Roles,
 		Permissions: input.Permissions,
 	})
@@ -47,13 +55,13 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 		return nil, errors.New("invalid user data")
 	}
 
-	err = u.repo.Save(newUser)
+	user, err := u.repo.Save(newUser)
 
 	if err != nil {
 		return nil, errors.New("cannot create new user")
 	}
 
-	return newUser, nil
+	return user, nil
 
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepository interface {
-	Save(u *user_entity.User) error
+	Save(u *user_entity.User) (*user_entity.User, error)
 	FindByID(id string) (*user_entity.User, error)
 	FindAll() ([]*user_entity.User, error)
 	Delete(id string) error
@@ -16,4 +16,5 @@ type UserRepository interface {
 
 var (
 	ErrUserNotFound = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )

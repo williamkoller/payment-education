@@ -7,24 +7,35 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	user_router "github.com/williamkoller/system-education/internal/user/router"
+	"github.com/joho/godotenv"
+	"github.com/williamkoller/system-education/config"
+	userRouter "github.com/williamkoller/system-education/internal/user/router"
 	"github.com/williamkoller/system-education/shared/middleware"
 )
 
 func main() {
-	g := gin.Default()
+	_ = godotenv.Load()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
 
+	database := config.NewDatabaseConnection()
+	config.RunMigrations(database, "")
+
+	g := gin.Default()
 	g.Use(gin.Recovery())
 	g.Use(middleware.GlobalErrorHandler())
+	userRouter.UserRouter(g, database)
 
-	user_router.UserRouter(g)
-
+	address := ":" + strconv.Itoa(cfg.App.Port)
 	srv := &http.Server{
-		Addr:              ":8080",
+		Addr:              address,
 		Handler:           g,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
