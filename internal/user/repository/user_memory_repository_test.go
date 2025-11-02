@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	"github.com/williamkoller/system-education/internal/user/port/repository"
+	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
 	user_repository "github.com/williamkoller/system-education/internal/user/repository"
 )
 
@@ -18,7 +18,6 @@ func createTestUser(id string) *user_entity.User {
 		Age:      25,
 		Email:    id + "@example.com",
 		Password: "password123",
-		Roles:    []string{"user"},
 	}
 }
 
@@ -35,10 +34,31 @@ func TestUserMemoryRepository_SaveAndFindByID(t *testing.T) {
 	assert.Equal(t, "u1", stored.GetID())
 }
 
+func TestUserMemoryRepository_SaveAndFindByEmail(t *testing.T) {
+	repo := user_repository.NewUserMemoryRepository()
+	user := createTestUser("u1")
+
+	_, err := repo.Save(user)
+	assert.NoError(t, err)
+
+	stored, err := repo.FindByEmail("u1@example.com")
+	assert.NoError(t, err)
+	assert.Equal(t, "Test", stored.GetName())
+	assert.Equal(t, "u1", stored.GetID())
+}
+
 func TestUserMemoryRepository_FindByID_NotFound(t *testing.T) {
 	repo := user_repository.NewUserMemoryRepository()
 
 	_, err := repo.FindByID("nonexistent")
+	assert.Error(t, err)
+	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
+}
+
+func TestUserMemoryRepository_FindByEmail_NotFound(t *testing.T) {
+	repo := user_repository.NewUserMemoryRepository()
+
+	_, err := repo.FindByEmail("nonexistent")
 	assert.Error(t, err)
 	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
 }
@@ -77,7 +97,6 @@ func TestUserMemoryRepository_Delete_NotFound(t *testing.T) {
 		Age:      25,
 		Email:    "u1@example.com",
 		Password: "password123",
-		Roles:    []string{"user"},
 	}
 
 	_, err := repo.Save(user)

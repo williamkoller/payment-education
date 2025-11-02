@@ -16,8 +16,6 @@ func TestNewUser(t *testing.T) {
 			Age:         28,
 			Email:       "alice@example.com",
 			Password:    "secret",
-			Roles:       []string{"user"},
-			Permissions: []string{"read"},
 		}
 
 
@@ -37,8 +35,6 @@ func TestNewUser(t *testing.T) {
 			Age:         -1,
 			Email:       "invalid-email",
 			Password:    "",
-			Roles:       []string{},
-			Permissions: []string{},
 		}
 
 		user := NewUser(input)
@@ -55,8 +51,6 @@ func TestUser_Getters(t *testing.T) {
 		Age:         35,
 		Email:       "carlos@example.com",
 		Password:    "secret123",
-		Roles:       []string{"admin"},
-		Permissions: []string{"read", "write"},
 	}
 
 	assert.Equal(t, "abc123", user.GetID())
@@ -65,6 +59,4 @@ func TestUser_Getters(t *testing.T) {
 	assert.Equal(t, int32(35), user.GetAge())
 	assert.Equal(t, "carlos@example.com", user.GetEmail())
 	assert.Equal(t, "secret123", user.GetPassword())
-	assert.Equal(t, []string{"admin"}, user.GetRoles())
-	assert.Equal(t, []string{"read", "write"}, user.GetPermissions())
 }

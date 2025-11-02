@@ -1,13 +1,15 @@
 package user_handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/williamkoller/system-education/internal/user/dtos"
 	user_mapper "github.com/williamkoller/system-education/internal/user/mapper"
-	"github.com/williamkoller/system-education/internal/user/port/handler"
-	"github.com/williamkoller/system-education/internal/user/port/usecase"
+	port_user_handler "github.com/williamkoller/system-education/internal/user/port/handler"
+	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
+	port_user_usecase "github.com/williamkoller/system-education/internal/user/port/usecase"
 )
 
 type UserHandler struct {
@@ -30,7 +32,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	user, err := h.usecase.Create(input)
+
 	if err != nil {
+		if errors.Is(err, port_user_repository.ErrUserAlreadyExists) {
+			c.Status(http.StatusConflict)
+			c.Error(err).SetType(gin.ErrorTypePublic)
+			return
+		}
+
 		c.Status(http.StatusBadRequest)
 		c.Error(err).SetType(gin.ErrorTypePublic)
 		return

@@ -7,12 +7,12 @@ import (
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	"github.com/williamkoller/system-education/internal/user/dtos"
 	port_cryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
-	"github.com/williamkoller/system-education/internal/user/port/repository"
-	"github.com/williamkoller/system-education/internal/user/port/usecase"
+	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
+	port_user_usecase "github.com/williamkoller/system-education/internal/user/port/usecase"
 )
 
 type UserUsecase struct {
-	repo port_user_repository.UserRepository
+	repo   port_user_repository.UserRepository
 	crypto port_cryptography.Bcrypt
 }
 
@@ -26,11 +26,7 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 	existingUser, err := u.repo.FindByEmail(input.Email)
 
 	if err == nil && existingUser != nil {
-		return nil, errors.New("user with this email already exists")
-	}
-
-	if err != nil && !errors.Is(err, port_user_repository.ErrUserNotFound) {
-		return nil, err
+		return nil, port_user_repository.ErrUserAlreadyExists
 	}
 
 	hash, err := u.crypto.Hash(input.Password)
@@ -40,15 +36,13 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 	}
 
 	newUser := user_entity.NewUser(&user_entity.User{
-		ID:          uuid.New().String(),
-		Name:        input.Name,
-		Surname:     input.Surname,
-		Nickname:    input.Nickname,
-		Age:         input.Age,
-		Email:       input.Email,
-		Password:    hash,
-		Roles:       input.Roles,
-		Permissions: input.Permissions,
+		ID:       uuid.New().String(),
+		Name:     input.Name,
+		Surname:  input.Surname,
+		Nickname: input.Nickname,
+		Age:      input.Age,
+		Email:    input.Email,
+		Password: hash,
 	})
 
 	if newUser == nil {

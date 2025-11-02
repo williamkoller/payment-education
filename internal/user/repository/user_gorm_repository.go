@@ -2,7 +2,7 @@ package user_repository
 
 import (
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	user_model "github.com/williamkoller/system-education/internal/user/models"
+	user_model "github.com/williamkoller/system-education/internal/user/model"
 	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
 	"gorm.io/gorm"
 )
@@ -19,7 +19,6 @@ func NewUserGormRepository(db *gorm.DB) *UserGormRepository {
 
 func (r *UserGormRepository) Save(u *user_entity.User) (*user_entity.User, error) {
 	model := user_model.FromEntity(u)
-
 	if err := r.db.Create(&model).Error; err != nil {
 		return nil, err
 	}
@@ -28,23 +27,23 @@ func (r *UserGormRepository) Save(u *user_entity.User) (*user_entity.User, error
 }
 
 func (r *UserGormRepository) FindByID(id string) (*user_entity.User, error) {
-	var model user_model.User
+	var user *user_entity.User
 
-	if err := r.db.First(&model, "id = ?", id).Error; err != nil {
+	if err := r.db.First(&user, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
-	return user_model.ToEntity(&model), nil
+	return user, nil
 }
 
 func (r *UserGormRepository) FindAll() ([]*user_entity.User, error) {
-	var models []*user_model.User
+	var users []*user_entity.User
 
-	if err := r.db.Find(&models).Error; err != nil {
+	if err := r.db.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
-	return user_model.ToEntities(models), nil
+	return users, nil
 }
 
 func (r *UserGormRepository) Delete(id string) error {
@@ -52,11 +51,12 @@ func (r *UserGormRepository) Delete(id string) error {
 }
 
 func (r *UserGormRepository) FindByEmail(email string) (*user_entity.User, error) {
-	var model user_model.User
+	var user *user_entity.User
+	model := user_model.FromEntity(user)
 
 	if err := r.db.First(&model, "email = ?", email).Error; err != nil {
 		return nil, err
 	}
 
-	return user_model.ToEntity(&model), nil
+	return user_model.ToEntity(model), nil
 }

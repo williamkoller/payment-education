@@ -1,4 +1,4 @@
-IGNORED_DIRS := internal/.*/router|shared/.*/event|cmd|internal/.*/domain/port/
+IGNORED_DIRS := internal/.*/router|shared/.*/event|cmd|internal/.*/domain/port/|pkg/logger|pkg/ulid|shared/middleware|internal/.*/model|config
 
 PKGS := $(shell go list ./... | grep -vE '($(IGNORED_DIRS))')
 

@@ -1,6 +1,8 @@
 package user_entity
 
 import (
+	"time"
+
 	user_event "github.com/williamkoller/system-education/internal/user/domain/event"
 	shared_event "github.com/williamkoller/system-education/shared/domain/event"
 )
@@ -13,9 +15,8 @@ type User struct {
 	Age         int32
 	Email       string
 	Password    string
-	Roles       []string
-	Permissions []string
-
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	domainEvents []shared_event.Event
 }
 
@@ -34,8 +35,6 @@ func NewUser(u *User) *User {
 		Age:         vu.Age,
 		Email:       vu.Email,
 		Password:    vu.Password,
-		Roles:       vu.Roles,
-		Permissions: vu.Permissions,
 	}
 
 	user.AddDomainEvent(user_event.NewUserCreatedEvent(user.ID, user.Name, user.Email))
@@ -65,14 +64,6 @@ func (u *User) GetEmail() string {
 
 func (u *User) GetPassword() string {
 	return u.Password
-}
-
-func (u *User) GetRoles() []string {
-	return u.Roles
-}
-
-func (u *User) GetPermissions() []string {
-	return u.Permissions
 }
 
 func (u *User) AddDomainEvent(e shared_event.Event) {
