@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: system-education-config
+  labels:
+    app: system-education
+data:
+  APP_NAME: "system-education"
+  APP_ENV: "production"
+  APP_PORT: "8080"
+  DB_HOST: "system-education-db"
+  DB_PORT: "5432"
+  DB_USERNAME: "postgres"
+  DB_DATABASE: "system_education"
