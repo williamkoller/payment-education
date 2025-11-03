@@ -16,6 +16,9 @@ cover:
 docker-build:
 	docker build -t williamkoller/system-education:latest .
 
+k8s-load-image:
+	minikube image load williamkoller/system-education:latest
+
 k8s-restart:
 	kubectl rollout restart deployment system-education
 
@@ -26,7 +29,7 @@ k8s-apply:
 	kubectl apply -k k8s/
 
 run-all:
-	make docker-build && make k8s-apply && make k8s-restart && make minikube-launch
+	make docker-build && make k8s-load-image && make k8s-apply && make k8s-restart && make minikube-launch
 
 migrate-create:
 	@if [ -z "$(name)" ]; then \
