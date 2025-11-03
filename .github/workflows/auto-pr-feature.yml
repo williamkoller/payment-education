@@ -2,7 +2,7 @@ name: Mark PR Ready After Tests
 
 on:
   workflow_run:
-    workflows: ["Go CI & Codecov"]
+    workflows: ['Go CI & Codecov']
     types:
       - completed
 
@@ -41,30 +41,47 @@ jobs:
               state: "open"
             });
 
+            core.setOutput("head_branch", head_branch);
+
             if (prs.data.length > 0) {
               const pr = prs.data[0];
               core.setOutput("pr_number", pr.number);
               core.setOutput("is_draft", pr.draft);
             } else {
               core.setOutput("pr_number", "");
+              core.setOutput("is_draft", "false");
             }
 
       - name: Instalar GitHub CLI
         run: sudo apt-get install -y gh
 
-      - name: Marcar PR como pronta para review
-        if: steps.get_pr.outputs.is_draft == 'true'
+      - name: Criar PR automaticamente se não existir
+        if: steps.get_pr.outputs.pr_number == ''
         run: |
-          echo "Marcando PR #${{ steps.get_pr.outputs.pr_number }} como 'Ready for Review'"
-          gh pr ready --repo ${{ github.repository }} ${{ steps.get_pr.outputs.pr_number }}
+          echo "Nenhuma PR encontrada. Criando nova PR automaticamente."
+          gh pr create \
+            --repo ${{ github.repository }} \
+            --base main \
+            --head ${{ steps.get_pr.outputs.head_branch }} \
+            --title "Automated PR from ${{ steps.get_pr.outputs.head_branch }}" \
+            --body "Esta PR foi criada automaticamente após o sucesso dos testes no workflow **Go CI & Codecov**." \
+            --draft
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: Marcar PR como pronta para review
+        if: steps.get_pr.outputs.is_draft == 'true' || steps.get_pr.outputs.pr_number == ''
+        run: |
+          echo "Marcando PR como 'Ready for Review'"
+          gh pr ready --repo ${{ github.repository }} --head ${{ steps.get_pr.outputs.head_branch }}
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Comentar na PR
-        if: steps.get_pr.outputs.pr_number != ''
         run: |
+          PR_NUMBER=$(gh pr list --head ${{ steps.get_pr.outputs.head_branch }} --json number -q '.[0].number')
           echo "Comentando que os testes passaram com sucesso"
-          gh pr comment ${{ steps.get_pr.outputs.pr_number }} \
+          gh pr comment $PR_NUMBER \
             --body "Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
