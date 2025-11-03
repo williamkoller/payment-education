@@ -1,87 +1,51 @@
-name: Mark PR Ready After Tests
+name: Go CI & Codecov
 
 on:
-  workflow_run:
-    workflows: ['Go CI & Codecov']
-    types:
-      - completed
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  mark_ready:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Obter informações do workflow original
-        uses: actions/github-script@v7
-        id: get_pr
+      - uses: actions/setup-go@v5
         with:
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const run_id = ${{ github.event.workflow_run.id }};
-            const run = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: run_id
-            });
+          go-version: '1.25'
 
-            const head_branch = run.data.head_branch;
+      - name: Instalar dependências
+        run: go mod tidy
 
-            const prs = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: `${context.repo.owner}:${head_branch}`,
-              state: "open"
-            });
-
-            core.setOutput("head_branch", head_branch);
-
-            if (prs.data.length > 0) {
-              const pr = prs.data[0];
-              core.setOutput("pr_number", pr.number);
-              core.setOutput("is_draft", pr.draft);
-            } else {
-              core.setOutput("pr_number", "");
-              core.setOutput("is_draft", "false");
-            }
-
-      - name: Instalar GitHub CLI
-        run: sudo apt-get install -y gh
-
-      - name: Criar PR automaticamente se não existir e se branch não for 'main'
-        if: steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main'
+      - name: Rodar testes com cobertura
         run: |
-          echo "Nenhuma PR encontrada. Criando nova PR automaticamente."
-          gh pr create \
-            --repo ${{ github.repository }} \
-            --base main \
-            --head ${{ steps.get_pr.outputs.head_branch }} \
-            --title "Automated PR from ${{ steps.get_pr.outputs.head_branch }}" \
-            --body "Esta PR foi criada automaticamente após o sucesso dos testes no workflow **Go CI & Codecov**." \
-            --draft
-        env:
-          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+          mkdir -p coverage
+          go test -v -covermode=atomic -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
 
-      - name: Marcar PR como pronta para review
-        if: steps.get_pr.outputs.is_draft == 'true' || (steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main')
+      - name: Confirmar conteúdo do arquivo de cobertura
         run: |
-          echo "Marcando PR como 'Ready for Review'"
-          gh pr ready --repo ${{ github.repository }} --head ${{ steps.get_pr.outputs.head_branch }}
-        env:
-          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+          echo "=== Tamanho e preview ==="
+          ls -lh coverage.out
+          head -n 15 coverage.out
+          echo "=== Resumo ==="
+          go tool cover -func=coverage.out | tail -n 10
 
-      - name: Comentar na PR
-        run: |
-          PR_NUMBER=$(gh pr list --head ${{ steps.get_pr.outputs.head_branch }} --json number -q '.[0].number')
-          echo "Comentando que os testes passaram com sucesso"
-          gh pr comment $PR_NUMBER \
-            --body "Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
-        env:
-          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+      - name: Upload cobertura para Codecov
+        uses: codecov/codecov-action@v4.5.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.out
+          flags: unittests
+          verbose: true
+          fail_ci_if_error: true
+          slug: williamkoller/system-system
