@@ -62,7 +62,6 @@ jobs:
           gh pr create \
             --repo ${{ github.repository }} \
             --base main \
-            --head ${{ steps.get_pr.outputs.head_branch }} \
             --title "Automated PR from ${{ steps.get_pr.outputs.head_branch }}" \
             --body "Esta PR foi criada automaticamente após o sucesso dos testes no workflow **Go CI & Codecov**." \
             --draft
