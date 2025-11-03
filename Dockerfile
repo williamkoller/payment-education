@@ -16,6 +16,8 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/system-education ./system-education
+COPY --from=builder /app/db ./db
+
 
 EXPOSE 8080
 
