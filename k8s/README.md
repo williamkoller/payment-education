@@ -5,9 +5,11 @@ Este diretório contém os manifestos Kubernetes necessários para executar o pr
 ## Recursos
 
 - `configmap.yaml`: define as variáveis de ambiente da aplicação e da conexão com o banco de dados.
-- `secret.yaml`: armazena a senha do banco de dados.
+- `secret.yaml`: armazena a senha do banco de dados utilizada por aplicação e banco.
 - `deployment.yaml`: cria o deployment que executa o container com a aplicação na porta 8080.
 - `service.yaml`: expõe a aplicação internamente no cluster na porta 8080.
+- `postgres-deployment.yaml`: provisiona um banco PostgreSQL com `PersistentVolumeClaim` e serviço interno.
+
 
 ## Executando com Minikube
 
@@ -24,19 +26,22 @@ Este diretório contém os manifestos Kubernetes necessários para executar o pr
    docker build -t system-education:latest .
    ```
 
-3. Aplique os manifestos Kubernetes:
+3. Ajuste os valores de banco de dados conforme o seu ambiente (por exemplo, edite `configmap.yaml` e `secret.yaml` ou utilize `kubectl create secret generic system-education-secret --from-literal=DB_PASSWORD=<sua-senha>` e atualize o ConfigMap antes de aplicar).
+
+4. Aplique os manifestos Kubernetes:
 
    ```bash
    kubectl apply -f k8s/
    ```
 
-4. Verifique se os pods estão prontos:
+5. Verifique se os pods estão prontos (aplicação e banco):
 
    ```bash
    kubectl get pods
    ```
 
-5. Para acessar a aplicação fora do cluster, exponha o serviço via `port-forward` ou crie um `NodePort`. Exemplo com `port-forward`:
+6. Para acessar a aplicação fora do cluster, exponha o serviço via `port-forward` ou crie um `NodePort`. Exemplo com `port-forward`:
+
 
    ```bash
    kubectl port-forward service/system-education 8080:8080
