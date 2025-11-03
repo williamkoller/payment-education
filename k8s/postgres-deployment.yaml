@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: system-education-db-pvc
+  labels:
+    app: system-education
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: system-education-db
+  labels:
+    app: system-education
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: system-education-db
+  template:
+    metadata:
+      labels:
+        app: system-education-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:14.2-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: system-education-config
+                  key: DB_DATABASE
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: system-education-config
+                  key: DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: system-education-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: system-education-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: system-education-db
+  labels:
+    app: system-education
+spec:
+  selector:
+    app: system-education-db
+  ports:
+    - port: 5432
+      targetPort: 5432
