@@ -6,9 +6,14 @@ metadata:
     app: system-education
 data:
   APP_NAME: "system-education"
-  APP_ENV: "production"
   APP_PORT: "8080"
   DB_HOST: "system-education-db"
   DB_PORT: "5432"
-  DB_USERNAME: "postgres"
-  DB_DATABASE: "system_education"
+  DB_USERNAME: "admin"
+  DB_DATABASE: "db-system-education"
+  DB_SSLMODE: "disable"
+  DB_TIMEZONE: "America/Sao_Paulo"
+  DB_LOG: "true"
+  DB_MAX_IDLE_CONNS: "10"
+  DB_MAX_OPEN_CONNS: "100"
+  DB_CONN_MAX_LIFETIME_MIN: "30"
