@@ -58,14 +58,12 @@ func TestCreateUser_Success(t *testing.T) {
 	}`)
 
 	expectedUser := &user_entity.User{
-		ID:          "u1",
-		Name:        "Alice",
-		Surname:     "Silva",
-		Nickname:    "ali",
-		Age:         30,
-		Email:       "alice@example.com",
-		Roles:       []string{"admin"},
-		Permissions: []string{"create"},
+		ID:       "u1",
+		Name:     "Alice",
+		Surname:  "Silva",
+		Nickname: "ali",
+		Age:      30,
+		Email:    "alice@example.com",
 	}
 
 	mockUsecase.On("Create", mock.Anything).Return(expectedUser, nil)

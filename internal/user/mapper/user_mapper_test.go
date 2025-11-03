@@ -15,8 +15,6 @@ func TestToUser(t *testing.T) {
 		Nickname:    "ali",
 		Email:       "alice@example.com",
 		Age:         28,
-		Roles:       []string{"admin"},
-		Permissions: []string{"create", "update"},
 	}
 
 	resp := ToUser(user)
@@ -28,6 +26,4 @@ func TestToUser(t *testing.T) {
 	assert.Equal(t, user.Nickname, resp.Nickname)
 	assert.Equal(t, user.Email, resp.Email)
 	assert.Equal(t, user.Age, resp.Age)
-	assert.ElementsMatch(t, user.Roles, resp.Roles)
-	assert.ElementsMatch(t, user.Permissions, resp.Permissions)
 }

@@ -20,11 +20,11 @@ func NewUserMemoryRepository() *UserMemoryRepository {
 	}
 }
 
-func (r *UserMemoryRepository) Save(u *user_entity.User) error {
+func (r *UserMemoryRepository) Save(u *user_entity.User) (*user_entity.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.store[u.ID] = u
-	return nil
+	return u, nil
 }
 
 func (r *UserMemoryRepository) FindByID(id string) (*user_entity.User, error) {

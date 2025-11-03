@@ -1,6 +1,10 @@
 package user_mapper
 
-import user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
+import (
+	"time"
+
+	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
+)
 
 type UserResponse struct {
 	ID          string   `json:"id"`
@@ -9,8 +13,8 @@ type UserResponse struct {
 	Nickname    string   `json:"nickname"`
 	Email       string   `json:"email"`
 	Age         int32    `json:"age"`
-	Roles       []string `json:"roles"`
-	Permissions []string `json:"permissions"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func ToUser(d *user_entity.User) *UserResponse {
@@ -21,8 +25,8 @@ func ToUser(d *user_entity.User) *UserResponse {
 		Nickname:    d.Nickname,
 		Email:       d.Email,
 		Age:         d.Age,
-		Roles:       d.Roles,
-		Permissions: d.Permissions,
+		CreatedAt: d.CreatedAt,
+		UpdatedAt: d.UpdatedAt,
 	}
 }
 
