@@ -17,7 +17,6 @@ type MockUserRepository struct {
 }
 
 type MockBcryptAdapter struct {
-	cost int
 	mock.Mock
 }
 
