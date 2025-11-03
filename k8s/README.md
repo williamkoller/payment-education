@@ -10,6 +10,7 @@ Este diretório contém os manifestos Kubernetes necessários para executar o pr
 - `service.yaml`: expõe a aplicação internamente no cluster na porta 8080.
 - `postgres-deployment.yaml`: provisiona um banco PostgreSQL com `PersistentVolumeClaim` e serviço interno.
 
+
 ## Executando com Minikube
 
 1. Inicie o Minikube e configure seu shell para utilizar o Docker interno do cluster:
@@ -40,6 +41,7 @@ Este diretório contém os manifestos Kubernetes necessários para executar o pr
    ```
 
 6. Para acessar a aplicação fora do cluster, exponha o serviço via `port-forward` ou crie um `NodePort`. Exemplo com `port-forward`:
+
 
    ```bash
    kubectl port-forward service/system-education 8080:8080
