@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Baixar informações do workflow original
+      - name: Obter informações do workflow original
         uses: actions/github-script@v7
         id: get_pr
         with:
@@ -55,10 +55,16 @@ jobs:
       - name: Instalar GitHub CLI
         run: sudo apt-get install -y gh
 
-      - name: Criar PR automaticamente se não existir
-        if: steps.get_pr.outputs.pr_number == ''
+      - name: Logar que PR não será criada para o branch 'main'
+        if: steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch == 'main'
         run: |
-          echo "Nenhuma PR encontrada. Criando nova PR automaticamente."
+          echo "❌ Nenhuma PR será criada porque o branch de origem é 'main'."
+          echo "Esse fluxo só cria PRs para branches de feature (ex: feature/*, fix/*, hotfix/*)."
+
+      - name: Criar PR automaticamente se não existir e se branch não for 'main'
+        if: steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main'
+        run: |
+          echo "✅ Nenhuma PR encontrada. Criando nova PR automaticamente."
           gh pr create \
             --repo ${{ github.repository }} \
             --base main \
@@ -70,9 +76,9 @@ jobs:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Marcar PR como pronta para review
-        if: steps.get_pr.outputs.is_draft == 'true' || steps.get_pr.outputs.pr_number == ''
+        if: steps.get_pr.outputs.is_draft == 'true' || (steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main')
         run: |
-          echo "Marcando PR como 'Ready for Review'"
+          echo "🚀 Marcando PR como 'Ready for Review'"
           gh pr ready --repo ${{ github.repository }} --head ${{ steps.get_pr.outputs.head_branch }}
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -80,8 +86,12 @@ jobs:
       - name: Comentar na PR
         run: |
           PR_NUMBER=$(gh pr list --head ${{ steps.get_pr.outputs.head_branch }} --json number -q '.[0].number')
-          echo "Comentando que os testes passaram com sucesso"
-          gh pr comment $PR_NUMBER \
-            --body "Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "⚠️ Nenhuma PR encontrada para comentar."
+          else
+            echo "💬 Comentando que os testes passaram com sucesso"
+            gh pr comment $PR_NUMBER \
+              --body "✅ Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
+          fi
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
