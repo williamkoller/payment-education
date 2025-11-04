@@ -38,3 +38,21 @@ migrate-create:
 	else \
 		migrate create -ext sql -dir db/migrations -seq $(name); \
 	fi
+
+create-app-argocd:
+	argocd app create system-education-app \
+      --project system-education \
+      --repo https://github.com/williamkoller/system-education \
+      --path k8s \
+      --dest-server https://kubernetes.default.svc \
+      --dest-namespace system-education
+
+sync-app-argocd:
+	argocd app sync system-education-app
+
+up-db:
+	docker-compose up -d go-system-education-db
+
+up-kube:
+	kubectl apply -f k8s/
+	kubectl port-forward service/system-education 8080:8080
