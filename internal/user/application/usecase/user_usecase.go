@@ -5,10 +5,10 @@ import (
 
 	"github.com/google/uuid"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	"github.com/williamkoller/system-education/internal/user/dtos"
 	port_cryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
 	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
 	port_user_usecase "github.com/williamkoller/system-education/internal/user/port/usecase"
+	"github.com/williamkoller/system-education/internal/user/presentation/dtos"
 )
 
 type UserUsecase struct {

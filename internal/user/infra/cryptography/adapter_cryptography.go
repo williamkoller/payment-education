@@ -1,7 +1,7 @@
 package cryptography
 
 import (
-	port_cryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
+	portCryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -9,7 +9,7 @@ type BcryptAdapter struct {
 	cost int
 }
 
-var _ port_cryptography.Bcrypt = (*BcryptAdapter)(nil)
+var _ portCryptography.Bcrypt = (*BcryptAdapter)(nil)
 
 func NewBcryptHasher(cost int) *BcryptAdapter {
 	if cost == 0 {

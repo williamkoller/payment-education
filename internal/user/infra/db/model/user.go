@@ -1,7 +1,7 @@
 package user_model
 
 import (
-	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
+	userEntity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +20,7 @@ func (User) TableName() string {
 	return "users"
 }
 
-func FromEntity(u *user_entity.User) *User {
+func FromEntity(u *userEntity.User) *User {
 	if u == nil {
 		return nil
 	}
@@ -35,7 +35,7 @@ func FromEntity(u *user_entity.User) *User {
 	}
 }
 
-func FromEntities(us []*user_entity.User) []*User {
+func FromEntities(us []*userEntity.User) []*User {
 	models := make([]*User, 0, len(us))
 	for _, u := range us {
 		models = append(models, FromEntity(u))
@@ -43,11 +43,11 @@ func FromEntities(us []*user_entity.User) []*User {
 	return models
 }
 
-func ToEntity(u *User) *user_entity.User {
+func ToEntity(u *User) *userEntity.User {
 	if u == nil {
 		return nil
 	}
-	return &user_entity.User{
+	return &userEntity.User{
 		ID:       u.ID,
 		Name:     u.Name,
 		Surname:  u.Surname,
@@ -58,8 +58,8 @@ func ToEntity(u *User) *user_entity.User {
 	}
 }
 
-func ToEntities(us []*User) []*user_entity.User {
-	entities := make([]*user_entity.User, 0, len(us))
+func ToEntities(us []*User) []*userEntity.User {
+	entities := make([]*userEntity.User, 0, len(us))
 	for _, u := range us {
 		entities = append(entities, ToEntity(u))
 	}

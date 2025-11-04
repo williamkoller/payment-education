@@ -3,31 +3,31 @@ package user_repository
 import (
 	"sync"
 
-	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
+	userEntity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	"github.com/williamkoller/system-education/internal/user/port/repository"
 )
 
 type UserMemoryRepository struct {
 	mu    sync.RWMutex
-	store map[string]*user_entity.User
+	store map[string]*userEntity.User
 }
 
 var _ port_user_repository.UserRepository = &UserMemoryRepository{}
 
 func NewUserMemoryRepository() *UserMemoryRepository {
 	return &UserMemoryRepository{
-		store: make(map[string]*user_entity.User),
+		store: make(map[string]*userEntity.User),
 	}
 }
 
-func (r *UserMemoryRepository) Save(u *user_entity.User) (*user_entity.User, error) {
+func (r *UserMemoryRepository) Save(u *userEntity.User) (*userEntity.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.store[u.ID] = u
 	return u, nil
 }
 
-func (r *UserMemoryRepository) FindByID(id string) (*user_entity.User, error) {
+func (r *UserMemoryRepository) FindByID(id string) (*userEntity.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	user, exists := r.store[id]
@@ -38,11 +38,11 @@ func (r *UserMemoryRepository) FindByID(id string) (*user_entity.User, error) {
 	return user, nil
 }
 
-func (r *UserMemoryRepository) FindAll() ([]*user_entity.User, error) {
+func (r *UserMemoryRepository) FindAll() ([]*userEntity.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	users := make([]*user_entity.User, 0, len(r.store))
+	users := make([]*userEntity.User, 0, len(r.store))
 
 	for _, u := range r.store {
 		users = append(users, u)
@@ -63,7 +63,7 @@ func (r *UserMemoryRepository) Delete(id string) error {
 	return nil
 }
 
-func (r *UserMemoryRepository) FindByEmail(email string) (*user_entity.User, error) {
+func (r *UserMemoryRepository) FindByEmail(email string) (*userEntity.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

@@ -3,18 +3,18 @@ package port_user_repository
 import (
 	"errors"
 
-	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
+	userEntity "github.com/williamkoller/system-education/internal/user/domain/entity"
 )
 
 type UserRepository interface {
-	Save(u *user_entity.User) (*user_entity.User, error)
-	FindByID(id string) (*user_entity.User, error)
-	FindAll() ([]*user_entity.User, error)
+	Save(u *userEntity.User) (*userEntity.User, error)
+	FindByID(id string) (*userEntity.User, error)
+	FindAll() ([]*userEntity.User, error)
 	Delete(id string) error
-	FindByEmail(email string) (*user_entity.User, error)
+	FindByEmail(email string) (*userEntity.User, error)
 }
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserNotFound      = errors.New("user not found")
 	ErrUserAlreadyExists = errors.New("user already exists")
 )

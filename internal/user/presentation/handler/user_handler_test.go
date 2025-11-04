@@ -10,9 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	"github.com/williamkoller/system-education/internal/user/dtos"
-	user_handler "github.com/williamkoller/system-education/internal/user/handler"
+	userEntity "github.com/williamkoller/system-education/internal/user/domain/entity"
+	"github.com/williamkoller/system-education/internal/user/presentation/dtos"
+	"github.com/williamkoller/system-education/internal/user/presentation/handler"
 	"github.com/williamkoller/system-education/shared/middleware"
 )
 
@@ -20,15 +20,15 @@ type MockUserUsecase struct {
 	mock.Mock
 }
 
-func (m *MockUserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
+func (m *MockUserUsecase) Create(input dtos.AddUserDto) (*userEntity.User, error) {
 	args := m.Called(input)
-	user, _ := args.Get(0).(*user_entity.User)
+	user, _ := args.Get(0).(*userEntity.User)
 	return user, args.Error(1)
 }
 
-func (m *MockUserUsecase) FindAll() ([]*user_entity.User, error) {
+func (m *MockUserUsecase) FindAll() ([]*userEntity.User, error) {
 	args := m.Called()
-	users, _ := args.Get(0).([]*user_entity.User)
+	users, _ := args.Get(0).([]*userEntity.User)
 	return users, args.Error(1)
 }
 
@@ -57,7 +57,7 @@ func TestCreateUser_Success(t *testing.T) {
 		"permissions": ["create"]
 	}`)
 
-	expectedUser := &user_entity.User{
+	expectedUser := &userEntity.User{
 		ID:       "u1",
 		Name:     "Alice",
 		Surname:  "Silva",

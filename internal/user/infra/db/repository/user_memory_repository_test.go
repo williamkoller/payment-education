@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
-	user_repository "github.com/williamkoller/system-education/internal/user/repository"
+	userEntity "github.com/williamkoller/system-education/internal/user/domain/entity"
+	"github.com/williamkoller/system-education/internal/user/infra/db/repository"
+	portUserRepository "github.com/williamkoller/system-education/internal/user/port/repository"
 )
 
-func createTestUser(id string) *user_entity.User {
-	return &user_entity.User{
+func createTestUser(id string) *userEntity.User {
+	return &userEntity.User{
 		ID:       id,
 		Name:     "Test",
 		Surname:  "User",
@@ -52,7 +52,7 @@ func TestUserMemoryRepository_FindByID_NotFound(t *testing.T) {
 
 	_, err := repo.FindByID("nonexistent")
 	assert.Error(t, err)
-	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
+	assert.Equal(t, portUserRepository.ErrUserNotFound, err)
 }
 
 func TestUserMemoryRepository_FindByEmail_NotFound(t *testing.T) {
@@ -60,7 +60,7 @@ func TestUserMemoryRepository_FindByEmail_NotFound(t *testing.T) {
 
 	_, err := repo.FindByEmail("nonexistent")
 	assert.Error(t, err)
-	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
+	assert.Equal(t, portUserRepository.ErrUserNotFound, err)
 }
 
 func TestUserMemoryRepository_FindAll(t *testing.T) {
@@ -84,12 +84,12 @@ func TestUserMemoryRepository_Delete(t *testing.T) {
 
 	_, err = repo.FindByID("u1")
 	assert.Error(t, err)
-	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
+	assert.Equal(t, portUserRepository.ErrUserNotFound, err)
 }
 
 func TestUserMemoryRepository_Delete_NotFound(t *testing.T) {
 	repo := user_repository.NewUserMemoryRepository()
-	user := &user_entity.User{
+	user := &userEntity.User{
 		ID:       "u1",
 		Name:     "Test",
 		Surname:  "User",
@@ -107,5 +107,5 @@ func TestUserMemoryRepository_Delete_NotFound(t *testing.T) {
 
 	err = repo.Delete("u1")
 	assert.Error(t, err)
-	assert.Equal(t, port_user_repository.ErrUserNotFound, err)
+	assert.Equal(t, portUserRepository.ErrUserNotFound, err)
 }

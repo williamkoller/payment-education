@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/williamkoller/system-education/internal/user/infra/db/model"
+	"github.com/williamkoller/system-education/internal/user/infra/db/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	user_model "github.com/williamkoller/system-education/internal/user/model"
-	user_repository "github.com/williamkoller/system-education/internal/user/repository"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {

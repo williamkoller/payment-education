@@ -6,10 +6,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/williamkoller/system-education/internal/user/application/usecase"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	"github.com/williamkoller/system-education/internal/user/dtos"
 	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
-	user_usecase "github.com/williamkoller/system-education/internal/user/usecase"
+	"github.com/williamkoller/system-education/internal/user/presentation/dtos"
 )
 
 type MockUserRepository struct {
