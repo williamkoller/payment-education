@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/williamkoller/system-education/config"
-	userRouter "github.com/williamkoller/system-education/internal/user/router"
+	userRouter "github.com/williamkoller/system-education/internal/user/presentation/router"
 	"github.com/williamkoller/system-education/shared/middleware"
 )
 

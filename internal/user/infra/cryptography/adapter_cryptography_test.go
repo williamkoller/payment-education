@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/williamkoller/system-education/internal/user/cryptography"
+	"github.com/williamkoller/system-education/internal/user/infra/cryptography"
 )
 
 func TestBcryptAdapter_HashAndCompare(t *testing.T) {

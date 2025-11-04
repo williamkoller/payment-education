@@ -5,22 +5,22 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/williamkoller/system-education/internal/user/dtos"
-	user_mapper "github.com/williamkoller/system-education/internal/user/mapper"
-	port_user_handler "github.com/williamkoller/system-education/internal/user/port/handler"
-	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
-	port_user_usecase "github.com/williamkoller/system-education/internal/user/port/usecase"
+	"github.com/williamkoller/system-education/internal/user/application/mapper"
+	portUserHandler "github.com/williamkoller/system-education/internal/user/port/handler"
+	portUserRepository "github.com/williamkoller/system-education/internal/user/port/repository"
+	portUserUsecase "github.com/williamkoller/system-education/internal/user/port/usecase"
+	"github.com/williamkoller/system-education/internal/user/presentation/dtos"
 )
 
 type UserHandler struct {
-	usecase port_user_usecase.UserUsecase
+	usecase portUserUsecase.UserUsecase
 }
 
-func NewUserHandler(usecase port_user_usecase.UserUsecase) *UserHandler {
+func NewUserHandler(usecase portUserUsecase.UserUsecase) *UserHandler {
 	return &UserHandler{usecase: usecase}
 }
 
-var _ port_user_handler.UserHandler = &UserHandler{}
+var _ portUserHandler.UserHandler = &UserHandler{}
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var input dtos.AddUserDto
@@ -34,7 +34,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	user, err := h.usecase.Create(input)
 
 	if err != nil {
-		if errors.Is(err, port_user_repository.ErrUserAlreadyExists) {
+		if errors.Is(err, portUserRepository.ErrUserAlreadyExists) {
 			c.Status(http.StatusConflict)
 			c.Error(err).SetType(gin.ErrorTypePublic)
 			return

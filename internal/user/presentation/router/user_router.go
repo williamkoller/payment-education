@@ -2,10 +2,10 @@ package user_router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/williamkoller/system-education/internal/user/cryptography"
-	user_handler "github.com/williamkoller/system-education/internal/user/handler"
-	user_repository "github.com/williamkoller/system-education/internal/user/repository"
-	user_usecase "github.com/williamkoller/system-education/internal/user/usecase"
+	"github.com/williamkoller/system-education/internal/user/application/usecase"
+	"github.com/williamkoller/system-education/internal/user/infra/cryptography"
+	"github.com/williamkoller/system-education/internal/user/infra/db/repository"
+	"github.com/williamkoller/system-education/internal/user/presentation/handler"
 	"gorm.io/gorm"
 )
 
