@@ -58,7 +58,7 @@ jobs:
           sudo apt-get install -y gh
 
       - name: Debug - Mostrar branch de origem
-        run: echo "Branch de origem detectada: ${{ steps.get_pr.outputs.head_branch }}"
+        run: "echo Branch de origem detectada: ${{ steps.get_pr.outputs.head_branch }}"
 
       - name: Criar PR automaticamente se não existir e se branch não for 'main'
         if: steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main'
