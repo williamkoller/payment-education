@@ -1,0 +1,51 @@
+name: Go CI & Codecov
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Instalar dependências
+        run: go mod tidy
+
+      - name: Rodar testes com cobertura
+        run: |
+          mkdir -p coverage
+          go test -v -covermode=atomic -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
+
+      - name: Confirmar conteúdo do arquivo de cobertura
+        run: |
+          echo "=== Tamanho e preview ==="
+          ls -lh coverage.out
+          head -n 15 coverage.out
+          echo "=== Resumo ==="
+          go tool cover -func=coverage.out | tail -n 10
+
+      - name: Upload cobertura para Codecov
+        uses: codecov/codecov-action@v4.5.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.out
+          flags: unittests
+          verbose: true
+          fail_ci_if_error: true
+          slug: williamkoller/system-system
