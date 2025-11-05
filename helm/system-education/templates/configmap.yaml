@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "system-education.fullname" . }}
+  labels:
+    {{- include "system-education.labels" . | nindent 4 }}
+data:
+  APP_NAME: {{ .Values.config.appName | quote }}
+  APP_PORT: {{ .Values.config.appPort | quote }}
+  DB_HOST: {{ .Values.config.database.host | quote }}
+  DB_PORT: {{ .Values.config.database.port | quote }}
+  DB_USERNAME: {{ .Values.config.database.username | quote }}
+  DB_DATABASE: {{ .Values.config.database.name | quote }}
+  DB_SSLMODE: {{ .Values.config.database.sslmode | quote }}
+  DB_TIMEZONE: {{ .Values.config.database.timezone | quote }}
+  DB_LOG: {{ .Values.config.database.log | quote }}
+  DB_MAX_IDLE_CONNS: {{ .Values.config.database.maxIdleConns | quote }}
+  DB_MAX_OPEN_CONNS: {{ .Values.config.database.maxOpenConns | quote }}
+  DB_CONN_MAX_LIFETIME_MIN: {{ .Values.config.database.connMaxLifetimeMin | quote }}
+  {{- range $key, $value := .Values.env.extra }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

@@ -1,0 +1,56 @@
+image:
+  repository: system-education
+  tag: latest
+  pullPolicy: Always
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 14.2-alpine
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    storageClassName: ""
+    size: 1Gi
+
+config:
+  appName: system-education
+  appPort: "8080"
+  database:
+    host: system-education-db
+    port: "5432"
+    username: admin
+    name: db-system-education
+    sslmode: disable
+    timezone: America/Sao_Paulo
+    log: "true"
+    maxIdleConns: "10"
+    maxOpenConns: "100"
+    connMaxLifetimeMin: "30"
+
+secrets:
+  dbPassword: Q1w2e3r4t5y6u7i8o9p0[-]=
+
+env:
+  extra: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

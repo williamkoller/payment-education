@@ -1,0 +1,87 @@
+{{- if .Values.postgresql.enabled }}
+{{- if .Values.postgresql.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "system-education.fullname" . }}-db-pvc
+  labels:
+    {{- include "system-education.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.postgresql.persistence.size }}
+  {{- with .Values.postgresql.persistence.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "system-education.fullname" . }}-db
+  labels:
+    {{- include "system-education.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: database
+      {{- include "system-education.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: database
+        {{- include "system-education.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "system-education.fullname" . }}
+                  key: DB_DATABASE
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "system-education.fullname" . }}
+                  key: DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "system-education.fullname" . }}-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          {{- if .Values.postgresql.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "system-education.fullname" . }}-db-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "system-education.fullname" . }}-db
+  labels:
+    {{- include "system-education.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/component: database
+    {{- include "system-education.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 5432
+      targetPort: postgres
+      name: postgres
+{{- end }}
