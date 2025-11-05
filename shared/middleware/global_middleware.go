@@ -35,8 +35,6 @@ func GlobalErrorHandler() gin.HandlerFunc {
 				statusCode = http.StatusInternalServerError
 			}
 
-			
-
 			log.Printf("DEBUG middleware: statusCode=%d, error=%q, written=%v",
 				statusCode, lastErr.Error(), c.Writer.Written())
 

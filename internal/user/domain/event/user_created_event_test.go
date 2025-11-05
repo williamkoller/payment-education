@@ -18,7 +18,6 @@ func TestNewUserCreatedEvent(t *testing.T) {
 	assert.False(t, e.Date.IsZero(), "A data não deve estar zero — deve ser inicializada em NewUserCreatedEvent")
 }
 
-
 func TestUserCreatedEvent_EventName(t *testing.T) {
 	e := NewUserCreatedEvent("1", "Will", "will@mail.com")
 
