@@ -2,7 +2,7 @@ name: Mark PR Ready After Tests
 
 on:
   workflow_run:
-    workflows: ['Go CI & Codecov']
+    workflows: ["Go CI & Codecov"]
     types:
       - completed
 
@@ -19,6 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Baixar informações do workflow original
       - name: Obter informações do workflow original
         uses: actions/github-script@v7
         id: get_pr
@@ -41,7 +42,7 @@ jobs:
               state: "open"
             });
 
-            core.setOutput("head_branch", head_branch);
+            core.setOutput("head_branch", head_branch ?? "");
 
             if (prs.data.length > 0) {
               const pr = prs.data[0];
@@ -69,17 +70,26 @@ jobs:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Marcar PR como pronta para review
+        if: steps.get_pr.outputs.is_draft == 'true'
         if: steps.get_pr.outputs.is_draft == 'true' || (steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main')
         run: |
+          echo "Marcando PR #${{ steps.get_pr.outputs.pr_number }} como 'Ready for Review'"
+          gh pr ready --repo ${{ github.repository }} ${{ steps.get_pr.outputs.pr_number }}
           echo "Marcando PR como 'Ready for Review'"
           gh pr ready --repo ${{ github.repository }} --head ${{ steps.get_pr.outputs.head_branch }}
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Comentar na PR
+        if: steps.get_pr.outputs.pr_number != ''
         run: |
           PR_NUMBER=$(gh pr list --head ${{ steps.get_pr.outputs.head_branch }} --json number -q '.[0].number')
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Nenhuma PR encontrada para comentar."
+            exit 0
+          fi
           echo "Comentando que os testes passaram com sucesso"
+          gh pr comment ${{ steps.get_pr.outputs.pr_number }} \
           gh pr comment $PR_NUMBER \
             --body "Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
         env:
