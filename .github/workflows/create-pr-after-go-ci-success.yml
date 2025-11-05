@@ -53,7 +53,9 @@ jobs:
             }
 
       - name: Instalar GitHub CLI
-        run: sudo apt-get install -y gh
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
 
       - name: Criar PR automaticamente se não existir e se branch não for 'main'
         if: steps.get_pr.outputs.pr_number == '' && steps.get_pr.outputs.head_branch != 'main'
@@ -77,10 +79,15 @@ jobs:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: Comentar na PR
+        if: steps.get_pr.outputs.pr_number != '' || steps.get_pr.outputs.head_branch != 'main'
         run: |
           PR_NUMBER=$(gh pr list --head ${{ steps.get_pr.outputs.head_branch }} --json number -q '.[0].number')
-          echo "Comentando que os testes passaram com sucesso"
-          gh pr comment $PR_NUMBER \
-            --body "Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
+          if [ -n "$PR_NUMBER" ]; then
+            echo "Comentando que os testes passaram com sucesso"
+            gh pr comment "$PR_NUMBER" \
+              --body "Testes passaram com sucesso no workflow **Go CI & Codecov**. PR pronta para revisão!"
+          else
+            echo "Nenhuma PR encontrada para comentar."
+          fi
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}

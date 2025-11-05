@@ -42,7 +42,6 @@ func ValidationUser(u *User) (*User, error) {
 		errs = append(errs, "password is required")
 	}
 
-
 	if len(errs) > 0 {
 		return nil, &ValidationError{Errors: errs}
 	}
