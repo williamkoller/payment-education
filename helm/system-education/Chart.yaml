@@ -1,0 +1,6 @@
+apiVersion: v2
+name: system-education
+version: 0.1.0
+appVersion: "0.1.0"
+description: Helm chart for deploying the system-education application and its PostgreSQL dependency.
+type: application

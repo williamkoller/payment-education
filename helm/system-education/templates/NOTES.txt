@@ -1,0 +1,9 @@
+Thank you for deploying system-education with Helm!
+
+1. Verify the status of the release:
+   kubectl get pods -n {{ .Release.Namespace }}
+
+2. Forward the service port locally if running on a private cluster:
+   kubectl port-forward svc/{{ include "system-education.fullname" . }} 8080:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+
+The application will be available on http://localhost:8080
