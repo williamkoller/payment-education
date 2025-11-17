@@ -2,7 +2,7 @@ package user_repository
 
 import (
 	userEntity "github.com/williamkoller/system-education/internal/user/domain/entity"
-	"github.com/williamkoller/system-education/internal/user/infra/db/model"
+	user_model "github.com/williamkoller/system-education/internal/user/infra/db/model"
 	portUserRepository "github.com/williamkoller/system-education/internal/user/port/repository"
 	"gorm.io/gorm"
 )
@@ -47,7 +47,7 @@ func (r *UserGormRepository) FindAll() ([]*userEntity.User, error) {
 }
 
 func (r *UserGormRepository) Delete(id string) error {
-	return r.db.Delete(&user_model.User{}, "id = ?", id).Error
+	return r.db.Unscoped().Delete(&user_model.User{}, "id = ?", id).Error
 }
 
 func (r *UserGormRepository) FindByEmail(email string) (*userEntity.User, error) {
@@ -55,6 +55,18 @@ func (r *UserGormRepository) FindByEmail(email string) (*userEntity.User, error)
 	model := user_model.FromEntity(user)
 
 	if err := r.db.First(&model, "email = ?", email).Error; err != nil {
+		return nil, err
+	}
+
+	return user_model.ToEntity(model), nil
+}
+
+func (r *UserGormRepository) Update(id string, u *userEntity.User) (*userEntity.User, error) {
+	model := user_model.FromEntity(u)
+
+	if err := r.db.Model(&user_model.User{}).
+		Where("id = ?", id).
+		Updates(&model).Error; err != nil {
 		return nil, err
 	}
 
