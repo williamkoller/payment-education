@@ -2,10 +2,10 @@ package user_router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/williamkoller/system-education/internal/user/application/usecase"
+	user_usecase "github.com/williamkoller/system-education/internal/user/application/usecase"
 	"github.com/williamkoller/system-education/internal/user/infra/cryptography"
-	"github.com/williamkoller/system-education/internal/user/infra/db/repository"
-	"github.com/williamkoller/system-education/internal/user/presentation/handler"
+	user_repository "github.com/williamkoller/system-education/internal/user/infra/db/repository"
+	user_handler "github.com/williamkoller/system-education/internal/user/presentation/handler"
 	"gorm.io/gorm"
 )
 
@@ -18,5 +18,8 @@ func UserRouter(e *gin.Engine, db *gorm.DB) {
 	{
 		users.POST("", userHandler.CreateUser)
 		users.GET("", userHandler.FindAllUsers)
+		users.GET(":id", userHandler.FindByID)
+		users.PUT(":id", userHandler.Update)
+		users.DELETE(":id", userHandler.Delete)
 	}
 }
