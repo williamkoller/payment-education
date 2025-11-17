@@ -48,3 +48,20 @@ func ValidationUser(u *User) (*User, error) {
 
 	return u, nil
 }
+
+func ValidationUpdateUser(user *User) (*User, error) {
+	var errs []string
+	if user.Age < 0 {
+		errs = append(errs, "age cannot be negative")
+	}
+
+	if !strings.Contains(user.Email, "@") {
+		errs = append(errs, "email is invalid")
+	}
+
+	if len(errs) > 0 {
+		return nil, &ValidationError{Errors: errs}
+	}
+
+	return user, nil
+}

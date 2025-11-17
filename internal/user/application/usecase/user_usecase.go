@@ -2,6 +2,8 @@ package user_usecase
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
@@ -67,4 +69,68 @@ func (u *UserUsecase) FindAll() ([]*user_entity.User, error) {
 	}
 
 	return users, nil
+}
+
+func (u *UserUsecase) FindByID(id string) (*user_entity.User, error) {
+	user, err := u.repo.FindByID(id)
+
+	if err != nil {
+		return nil, errors.New("error in findByID user")
+	}
+
+	return user, nil
+}
+
+func (u *UserUsecase) Update(id string, input dtos.UpdateUserDto) (*user_entity.User, error) {
+	log.Printf("Updating user with ID: %s, Data: %+v", id, input)
+
+	userExists, err := u.FindByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user by ID: %w", err)
+	}
+	if userExists == nil {
+		return nil, errors.New("user not found")
+	}
+
+	if input.Password != nil {
+		if *input.Password == "" {
+		} else {
+			hash, err := u.crypto.Hash(*input.Password)
+			if err != nil {
+				return nil, err
+			}
+			input.Password = &hash
+		}
+	}
+
+	userExists.UpdateUser(
+		input.Name,
+		input.Nickname,
+		input.Email,
+		input.Password,
+		input.Age,
+	)
+
+	updatedUser, err := u.repo.Update(userExists.ID, userExists)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return updatedUser, nil
+}
+
+func (u *UserUsecase) Delete(id string) error {
+	userExists, err := u.FindByID(id)
+
+	if err != nil {
+		return errors.New("user not dound")
+	}
+
+	err = u.repo.Delete(userExists.ID)
+
+	if err != nil {
+		return errors.New("error in delete user")
+	}
+
+	return nil
 }

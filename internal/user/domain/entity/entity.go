@@ -78,3 +78,28 @@ func (u *User) PullDomainEvents() []sharedEvent.Event {
 	u.domainEvents = []sharedEvent.Event{}
 	return events
 }
+
+func (u *User) UpdateUser(name, nickname, email, password *string, age *int32) (*User, error) {
+	if name != nil {
+		u.Name = *name
+	}
+	if nickname != nil {
+		u.Nickname = *nickname
+	}
+	if email != nil {
+		u.Email = *email
+	}
+	if password != nil {
+		u.Password = *password
+	}
+	if age != nil {
+		u.Age = *age
+	}
+
+	uv, err := ValidationUpdateUser(u)
+	if err != nil {
+		return nil, err
+	}
+
+	return uv, nil
+}

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/williamkoller/system-education/internal/user/infra/db/model"
-	"github.com/williamkoller/system-education/internal/user/infra/db/repository"
+	user_model "github.com/williamkoller/system-education/internal/user/infra/db/model"
+	user_repository "github.com/williamkoller/system-education/internal/user/infra/db/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -101,5 +101,20 @@ func TestUserGormRepository_Delete(t *testing.T) {
 	_, _ = repo.Save(u1)
 	err := repo.Delete("id1")
 	assert.NoError(t, err)
+
+}
+
+func TestUserGormRepository_Update(t *testing.T) {
+	db := setupTestDB(t)
+	repo := user_repository.NewUserGormRepository(db)
+
+	u1 := &user_entity.User{ID: "id1", Name: "A", Surname: "B", Nickname: "a", Age: 20, Email: "a@example.com", Password: "p1"}
+
+	_, _ = repo.Save(u1)
+	updateU := &user_entity.User{ID: u1.ID, Name: "AA", Surname: "Bbb", Nickname: "aaa", Age: 21, Email: "aa@example.com", Password: "p1"}
+
+	userUpdate, err := repo.Update("id1", updateU)
+	assert.NoError(t, err)
+	assert.NotNil(t, userUpdate)
 
 }

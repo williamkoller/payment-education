@@ -12,6 +12,7 @@ type UserRepository interface {
 	FindAll() ([]*userEntity.User, error)
 	Delete(id string) error
 	FindByEmail(email string) (*userEntity.User, error)
+	Update(id string, u *userEntity.User) (*userEntity.User, error)
 }
 
 var (

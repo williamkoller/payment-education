@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/williamkoller/system-education/internal/user/application/mapper"
+	user_mapper "github.com/williamkoller/system-education/internal/user/application/mapper"
 	portUserHandler "github.com/williamkoller/system-education/internal/user/port/handler"
 	portUserRepository "github.com/williamkoller/system-education/internal/user/port/repository"
 	portUserUsecase "github.com/williamkoller/system-education/internal/user/port/usecase"
@@ -59,4 +59,57 @@ func (h *UserHandler) FindAllUsers(c *gin.Context) {
 
 	resp := user_mapper.ToUsers(users)
 	c.JSON(http.StatusOK, resp)
+}
+
+func (h *UserHandler) FindByID(c *gin.Context) {
+	idParams := c.Param("id")
+	user, err := h.usecase.FindByID(idParams)
+
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		c.Error(err).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	resp := user_mapper.ToUser(user)
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *UserHandler) Update(c *gin.Context) {
+	idParams := c.Param("id")
+
+	var input dtos.UpdateUserDto
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.Status(http.StatusBadRequest)
+		c.Error(err).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	user, err := h.usecase.Update(idParams, input)
+
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		c.Error(err).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	resp := user_mapper.ToUser(user)
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *UserHandler) Delete(c *gin.Context) {
+	id := c.Param("id")
+
+	err := h.usecase.Delete(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to delete user",
+		})
+		c.Error(err).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": "user deleted successfully",
+	})
 }
