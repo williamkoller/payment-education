@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	port_cryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
+	port_event "github.com/williamkoller/system-education/internal/user/port/event"
 	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
 	port_user_usecase "github.com/williamkoller/system-education/internal/user/port/usecase"
 	"github.com/williamkoller/system-education/internal/user/presentation/dtos"
@@ -16,10 +17,11 @@ import (
 type UserUsecase struct {
 	repo   port_user_repository.UserRepository
 	crypto port_cryptography.Bcrypt
+	event  port_event.Dispacther
 }
 
-func NewUserUsecase(repo port_user_repository.UserRepository, crypto port_cryptography.Bcrypt) *UserUsecase {
-	return &UserUsecase{repo: repo, crypto: crypto}
+func NewUserUsecase(repo port_user_repository.UserRepository, crypto port_cryptography.Bcrypt, event port_event.Dispacther) *UserUsecase {
+	return &UserUsecase{repo: repo, crypto: crypto, event: event}
 }
 
 var _ port_user_usecase.UserUsecase = &UserUsecase{}
@@ -52,6 +54,10 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 	}
 
 	user, err := u.repo.Save(newUser)
+
+	for _, domainEvent := range newUser.PullDomainEvents() {
+		u.event.Dispatch(domainEvent)
+	}
 
 	if err != nil {
 		return nil, errors.New("cannot create new user")

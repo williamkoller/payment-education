@@ -31,7 +31,7 @@ func main() {
 	g := gin.Default()
 	g.Use(gin.Recovery())
 	g.Use(middleware.GlobalErrorHandler())
-	userRouter.UserRouter(g, database)
+	userRouter.UserRouter(g, database, cfg.Resend)
 
 	address := ":" + strconv.Itoa(cfg.App.Port)
 	srv := &http.Server{

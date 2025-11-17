@@ -10,6 +10,7 @@ import (
 	user_entity "github.com/williamkoller/system-education/internal/user/domain/entity"
 	port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
 	"github.com/williamkoller/system-education/internal/user/presentation/dtos"
+	shared_event "github.com/williamkoller/system-education/shared/domain/event"
 )
 
 type MockUserRepository struct {
@@ -18,6 +19,18 @@ type MockUserRepository struct {
 
 type MockBcryptAdapter struct {
 	mock.Mock
+}
+
+type MockEvent struct {
+	mock.Mock
+}
+
+func (m *MockEvent) Register(eventName string, handler shared_event.Handler) {
+	m.Called(eventName, handler)
+}
+
+func (m *MockEvent) Dispatch(event interface{}) {
+	m.Called(event)
 }
 
 func (m *MockBcryptAdapter) Hash(plaintext string) (string, error) {
@@ -69,7 +82,8 @@ func (m *MockUserRepository) Delete(id string) error {
 func TestCreate_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	input := dtos.AddUserDto{
 		Name:     "Alice",
@@ -92,6 +106,9 @@ func TestCreate_Success(t *testing.T) {
 		Email:    input.Email,
 		Password: "mocked:secure123",
 	}, nil)
+	mockEvent.On("Dispatch", mock.MatchedBy(func(e interface{}) bool {
+		return e != nil
+	})).Return()
 
 	user, err := usecase.Create(input)
 
@@ -103,11 +120,12 @@ func TestCreate_Success(t *testing.T) {
 	mockCrypto.AssertExpectations(t)
 }
 
-// ✅ Teste: Usuário já existe
 func TestCreate_AlreadyExists(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	existing := &user_entity.User{Email: "alice@example.com"}
 	mockRepo.On("FindByEmail", "alice@example.com").Return(existing, nil)
@@ -118,11 +136,12 @@ func TestCreate_AlreadyExists(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// ✅ Teste: erro ao salvar
 func TestCreate_SaveFails(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	input := dtos.AddUserDto{
 		Name:     "Alice",
@@ -139,6 +158,10 @@ func TestCreate_SaveFails(t *testing.T) {
 		return u.Email == input.Email
 	})).Return(nil, errors.New("save error"))
 
+	mockEvent.On("Dispatch", mock.MatchedBy(func(e interface{}) bool {
+		return e != nil
+	})).Return()
+
 	_, err := usecase.Create(input)
 
 	assert.Error(t, err)
@@ -150,7 +173,9 @@ func TestCreate_SaveFails(t *testing.T) {
 func TestCreate_HashFails(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	input := dtos.AddUserDto{
 		Name:     "Alice",
@@ -176,14 +201,16 @@ func TestCreate_HashFails(t *testing.T) {
 func TestCreate_InvalidUserData(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	input := dtos.AddUserDto{
 		Name:     "Alice",
 		Surname:  "Silva",
 		Nickname: "ali",
 		Age:      30,
-		Email:    "", // Email vazio pode causar falha em NewUser()
+		Email:    "",
 		Password: "secure123",
 	}
 
@@ -201,7 +228,9 @@ func TestCreate_InvalidUserData(t *testing.T) {
 func TestFindAll_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	expectedUsers := []*user_entity.User{
 		{Name: "Alice"}, {Name: "Bob"},
@@ -220,7 +249,9 @@ func TestFindAll_Success(t *testing.T) {
 func TestFindByID_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	expectedUser := &user_entity.User{ID: "123", Name: "Alice"}
 	mockRepo.On("FindByID", "123").Return(expectedUser, nil)
@@ -235,7 +266,9 @@ func TestFindByID_Success(t *testing.T) {
 func TestDelete_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	user := &user_entity.User{ID: "123"}
 	mockRepo.On("FindByID", "123").Return(user, nil)
@@ -250,7 +283,9 @@ func TestDelete_Success(t *testing.T) {
 func TestDelete_FailDelete(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	user := &user_entity.User{ID: "123"}
 	mockRepo.On("FindByID", "123").Return(user, nil)
@@ -265,7 +300,9 @@ func TestDelete_FailDelete(t *testing.T) {
 func TestUpdate_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockCrypto := new(MockBcryptAdapter)
-	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
 
 	id := "123"
 	existingUser := &user_entity.User{ID: id, Email: "old@example.com"}

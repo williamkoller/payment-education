@@ -23,6 +23,7 @@ type AppConfiguration struct {
 type Config struct {
 	Database DatabaseConfiguration
 	App      AppConfiguration
+	Resend   string
 }
 
 func LoadConfig() (*Config, error) {
@@ -36,9 +37,12 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("erro ao carregar configuração da aplicação: %w", err)
 	}
 
+	resend := loadResend()
+
 	return &Config{
 		Database: *dbCfg,
 		App:      *appCfg,
+		Resend:   resend,
 	}, nil
 }
 
@@ -85,4 +89,8 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func loadResend() string {
+	return getEnv("RESEND_API_KEY", "")
 }
