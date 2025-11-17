@@ -11,79 +11,84 @@ permissions:
   pull-requests: write
 
 jobs:
-  create_or_update_pr:
+  create_pr:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout (Opcional, mas útil para o contexto)
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: ⚙️ Instalar GitHub CLI
+      - name: Install GitHub CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y gh
 
-      - name: 🔎 Obter informações da Branch/PR
+      - name: Get PR info
         uses: actions/github-script@v7
         id: get_info
         with:
           github-token: ${{ secrets.BOT_TOKEN }}
           script: |
-            const run_id = ${{ github.event.workflow_run.id }};
+            const run_id = process.env.RUN_ID;
 
-            // 1. Obter a 'head_branch' do run que disparou este workflow
             const run = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              run_id
+              run_id: parseInt(run_id)
             });
+
             const head_branch = run.data.head_branch;
             core.setOutput("head_branch", head_branch);
 
-            // 2. Checar se já existe uma PR aberta dessa branch
             const prs = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
               head: `${context.repo.owner}:${head_branch}`,
-              base: 'main', // Adicionar 'base' ajuda a filtrar somente PRs para main
+              base: 'main',
               state: "open"
             });
 
             if (prs.data.length > 0) {
               const pr = prs.data[0];
-              core.setOutput("pr_number", pr.number);
+              core.setOutput("pr_number", pr.number.toString());
               core.setOutput("is_draft", pr.draft ? 'true' : 'false');
             } else {
               core.setOutput("pr_number", "");
               core.setOutput("is_draft", "false");
             }
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
 
-      - name: ❌ Verificar exclusão de branches de destino
+      - name: Block if main/master
         if: ${{ steps.get_info.outputs.head_branch == 'main' || steps.get_info.outputs.head_branch == 'master' }}
         run: |
-          echo "A branch de origem é ${{ steps.get_info.outputs.head_branch }}. Não é permitido criar PR para si mesma."
+          echo "Branch de origem '${{ steps.get_info.outputs.head_branch }}' não pode ser 'main' ou 'master'."
           exit 1
 
-      - name: 🆕 Criar PR (Draft) se não existir
+      - name: Filter by branch prefix
+        run: |
+          BRANCH="${{ steps.get_info.outputs.head_branch }}"
+          if [[ "$BRANCH" != feature/* && "$BRANCH" != bugfix/* && "$BRANCH" != hotfix/* ]]; then
+            echo "Branch '$BRANCH' não tem prefixo aceito. Encerrando."
+            exit 0
+          fi
+
+      - name: Create PR if not exists
         if: ${{ steps.get_info.outputs.pr_number == '' }}
         run: |
-          echo "Nenhuma PR encontrada. Criando nova PR (Draft) da branch: ${{ steps.get_info.outputs.head_branch }}"
           gh pr create \
             --repo ${{ github.repository }} \
             --base main \
             --head ${{ steps.get_info.outputs.head_branch }} \
-            --title "🤖 PR Automática: ${{ steps.get_info.outputs.head_branch }}" \
-            --body "Esta PR foi criada automaticamente após o sucesso dos testes no workflow **Go CI & Codecov**." \
-            --draft
+            --title "PR Automática: ${{ steps.get_info.outputs.head_branch }}" \
+            --body "Esta PR foi criada automaticamente após o sucesso do workflow Go CI & Codecov."
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
-      - name: ✅ Marcar PR como pronta para review e comentar
+      - name: Mark PR as ready and comment
         run: |
           PR_NUMBER="${{ steps.get_info.outputs.pr_number }}"
-
-          # Se acabamos de criar, buscar novamente o número
           if [ -z "$PR_NUMBER" ]; then
             PR_NUMBER=$(gh pr list --head ${{ steps.get_info.outputs.head_branch }} --base main --json number -q '.[0].number')
           fi
@@ -93,14 +98,11 @@ jobs:
             exit 1
           fi
 
-          # Tornar PR ready se era draft ou recém criada
           if [ "${{ steps.get_info.outputs.is_draft }}" == "true" ] || [ "${{ steps.get_info.outputs.pr_number }}" == "" ]; then
-            echo "Marcando PR #$PR_NUMBER como 'Ready for Review'"
             gh pr ready $PR_NUMBER
           fi
 
-          echo "Comentando que os testes passaram com sucesso"
           gh pr comment $PR_NUMBER \
-            --body "🚀 **Testes Passaram!** O workflow **Go CI & Codecov** terminou com sucesso. PR está pronta para revisão e merge!"
+            --body "Workflow Go CI & Codecov finalizado com sucesso. PR criada e pronta para revisão."
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
