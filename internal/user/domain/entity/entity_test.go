@@ -116,3 +116,171 @@ func TestPullDomainEvents(t *testing.T) {
 	assert.Equal(t, "MockEvent", events[0].EventName())
 	assert.Empty(t, user.PullDomainEvents())
 }
+
+func TestPullDomainEvents_NilUser(t *testing.T) {
+	var user *User
+	events := user.PullDomainEvents()
+	assert.Nil(t, events)
+}
+
+func TestUpdateUser_PartialUpdate(t *testing.T) {
+	t.Run("update only name", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Original",
+			Surname:  "User",
+			Nickname: "original",
+			Age:      25,
+			Email:    "original@example.com",
+			Password: "pass123",
+		}
+
+		newName := "Updated"
+		updated, err := user.UpdateUser(&newName, nil, nil, nil, nil)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, updated)
+		assert.Equal(t, "Updated", updated.Name)
+		assert.Equal(t, "original", updated.Nickname)          // unchanged
+		assert.Equal(t, "original@example.com", updated.Email) // unchanged
+	})
+
+	t.Run("update only nickname", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Test",
+			Surname:  "User",
+			Nickname: "old",
+			Age:      25,
+			Email:    "test@example.com",
+			Password: "pass123",
+		}
+
+		newNickname := "new"
+		updated, err := user.UpdateUser(nil, &newNickname, nil, nil, nil)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "new", updated.Nickname)
+		assert.Equal(t, "Test", updated.Name) // unchanged
+	})
+
+	t.Run("update only email", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Test",
+			Surname:  "User",
+			Nickname: "test",
+			Age:      25,
+			Email:    "old@example.com",
+			Password: "pass123",
+		}
+
+		newEmail := "new@example.com"
+		updated, err := user.UpdateUser(nil, nil, &newEmail, nil, nil)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "new@example.com", updated.Email)
+	})
+
+	t.Run("update only password", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Test",
+			Surname:  "User",
+			Nickname: "test",
+			Age:      25,
+			Email:    "test@example.com",
+			Password: "oldpass",
+		}
+
+		newPassword := "newpass"
+		updated, err := user.UpdateUser(nil, nil, nil, &newPassword, nil)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "newpass", updated.Password)
+	})
+
+	t.Run("update only age", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Test",
+			Surname:  "User",
+			Nickname: "test",
+			Age:      25,
+			Email:    "test@example.com",
+			Password: "pass123",
+		}
+
+		newAge := int32(30)
+		updated, err := user.UpdateUser(nil, nil, nil, nil, &newAge)
+
+		assert.NoError(t, err)
+		assert.Equal(t, int32(30), updated.Age)
+	})
+
+	t.Run("update with validation error - invalid email", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Test",
+			Surname:  "User",
+			Nickname: "test",
+			Age:      25,
+			Email:    "test@example.com",
+			Password: "pass123",
+		}
+
+		invalidEmail := "invalid-email"
+		updated, err := user.UpdateUser(nil, nil, &invalidEmail, nil, nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "email is invalid")
+	})
+
+	t.Run("update with validation error - negative age", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Test",
+			Surname:  "User",
+			Nickname: "test",
+			Age:      25,
+			Email:    "test@example.com",
+			Password: "pass123",
+		}
+
+		negativeAge := int32(-5)
+		updated, err := user.UpdateUser(nil, nil, nil, nil, &negativeAge)
+
+		assert.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "age cannot be negative")
+	})
+
+	t.Run("update all fields at once", func(t *testing.T) {
+		user := &User{
+			ID:       "123",
+			Name:     "Old",
+			Surname:  "User",
+			Nickname: "old",
+			Age:      20,
+			Email:    "old@example.com",
+			Password: "oldpass",
+		}
+
+		newName := "New"
+		newNickname := "new"
+		newEmail := "new@example.com"
+		newPassword := "newpass"
+		newAge := int32(25)
+
+		updated, err := user.UpdateUser(&newName, &newNickname, &newEmail, &newPassword, &newAge)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, updated)
+		assert.Equal(t, "New", updated.Name)
+		assert.Equal(t, "new", updated.Nickname)
+		assert.Equal(t, "new@example.com", updated.Email)
+		assert.Equal(t, "newpass", updated.Password)
+		assert.Equal(t, int32(25), updated.Age)
+	})
+}
