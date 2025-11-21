@@ -1,14 +1,14 @@
-package cryptography_test
+package user_cryptography_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/williamkoller/system-education/internal/user/infra/cryptography"
+	user_cryptography "github.com/williamkoller/system-education/internal/user/infra/cryptography"
 )
 
 func TestBcryptAdapter_HashAndCompare(t *testing.T) {
-	hasher := cryptography.NewBcryptHasher(0) // usa default cost
+	hasher := user_cryptography.NewBcryptHasher(0)
 
 	password := "supersecret"
 
@@ -17,9 +17,11 @@ func TestBcryptAdapter_HashAndCompare(t *testing.T) {
 	assert.NotEmpty(t, hash)
 	assert.NotEqual(t, password, hash)
 
-	isMatch := hasher.HashComparer(password, hash)
+	isMatch, err := hasher.HashComparer(password, hash)
+	assert.NoError(t, err)
 	assert.True(t, isMatch)
 
-	isWrong := hasher.HashComparer("wrongpassword", hash)
+	isWrong, err := hasher.HashComparer("wrongpassword", hash)
+	assert.Error(t, err)
 	assert.False(t, isWrong)
 }
