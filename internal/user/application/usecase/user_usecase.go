@@ -54,13 +54,12 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 	}
 
 	user, err := u.repo.Save(newUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save user: %w", err)
+	}
 
 	for _, domainEvent := range newUser.PullDomainEvents() {
 		u.event.Dispatch(domainEvent)
-	}
-
-	if err != nil {
-		return nil, errors.New("cannot create new user")
 	}
 
 	return user, nil
@@ -69,44 +68,47 @@ func (u *UserUsecase) Create(input dtos.AddUserDto) (*user_entity.User, error) {
 
 func (u *UserUsecase) FindAll() ([]*user_entity.User, error) {
 	users, err := u.repo.FindAll()
-
 	if err != nil {
-		return nil, errors.New("error in findAll users")
+		return nil, fmt.Errorf("failed to find all users: %w", err)
 	}
 
 	return users, nil
 }
 
 func (u *UserUsecase) FindByID(id string) (*user_entity.User, error) {
-	user, err := u.repo.FindByID(id)
+	if id == "" {
+		return nil, errors.New("user ID cannot be empty")
+	}
 
+	user, err := u.repo.FindByID(id)
 	if err != nil {
-		return nil, errors.New("error in findByID user")
+		return nil, fmt.Errorf("failed to find user by ID %s: %w", id, err)
 	}
 
 	return user, nil
 }
 
 func (u *UserUsecase) Update(id string, input dtos.UpdateUserDto) (*user_entity.User, error) {
+	if id == "" {
+		return nil, errors.New("user ID cannot be empty")
+	}
+
 	log.Printf("Updating user with ID: %s, Data: %+v", id, input)
 
 	userExists, err := u.FindByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find user by ID: %w", err)
+		return nil, err
 	}
 	if userExists == nil {
 		return nil, errors.New("user not found")
 	}
 
-	if input.Password != nil {
-		if *input.Password == "" {
-		} else {
-			hash, err := u.crypto.Hash(*input.Password)
-			if err != nil {
-				return nil, err
-			}
-			input.Password = &hash
+	if input.Password != nil && *input.Password != "" {
+		hash, err := u.crypto.Hash(*input.Password)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash password: %w", err)
 		}
+		input.Password = &hash
 	}
 
 	userExists.UpdateUser(
@@ -126,16 +128,18 @@ func (u *UserUsecase) Update(id string, input dtos.UpdateUserDto) (*user_entity.
 }
 
 func (u *UserUsecase) Delete(id string) error {
-	userExists, err := u.FindByID(id)
+	if id == "" {
+		return errors.New("user ID cannot be empty")
+	}
 
+	userExists, err := u.FindByID(id)
 	if err != nil {
-		return errors.New("user not dound")
+		return err
 	}
 
 	err = u.repo.Delete(userExists.ID)
-
 	if err != nil {
-		return errors.New("error in delete user")
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
 	return nil
