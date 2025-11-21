@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 type DatabaseConfiguration struct {
@@ -21,9 +22,16 @@ type AppConfiguration struct {
 }
 
 type Config struct {
-	Database DatabaseConfiguration
-	App      AppConfiguration
-	Resend   string
+	Database  DatabaseConfiguration
+	App       AppConfiguration
+	Resend    ResendConfiguration
+	Secret    string
+	ExpiresIn time.Duration
+}
+
+type ResendConfiguration struct {
+	ApiKey string
+	FromAddress string
 }
 
 func LoadConfig() (*Config, error) {
@@ -38,11 +46,15 @@ func LoadConfig() (*Config, error) {
 	}
 
 	resend := loadResend()
+	secret := loadSecret()
+	expiresIn := loadTimeDuration()
 
 	return &Config{
-		Database: *dbCfg,
-		App:      *appCfg,
-		Resend:   resend,
+		Database:  *dbCfg,
+		App:       *appCfg,
+		Resend:    resend,
+		Secret:    secret,
+		ExpiresIn: expiresIn,
 	}, nil
 }
 
@@ -91,6 +103,17 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func loadResend() string {
-	return getEnv("RESEND_API_KEY", "")
+func loadResend() ResendConfiguration {
+	return ResendConfiguration{
+		ApiKey:       getEnv("RESEND_API_KEY", ""),
+		FromAddress:  getEnv("RESEND_FROM_ADDRESS", ""),
+	}
+}
+
+func loadSecret() string {
+	return getEnv("JWT_SECRET", "")
+}
+
+func loadTimeDuration() time.Duration {
+	return 3*time.Hour + 15*time.Minute + 30*time.Second
 }
