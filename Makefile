@@ -38,3 +38,6 @@ migrate-create:
 	else \
 		migrate create -ext sql -dir db/migrations -seq $(name); \
 	fi
+
+migrate-up:
+	migrate -path db/migrations -database "postgres://admin:Q1w2e3r4t5y6u7i8o9p0%5B-%5D%3D@localhost:5432/db-system-education?sslmode=disable" up
