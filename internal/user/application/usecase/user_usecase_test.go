@@ -38,9 +38,9 @@ func (m *MockBcryptAdapter) Hash(plaintext string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockBcryptAdapter) HashComparer(plaintext string, hashed string) bool {
+func (m *MockBcryptAdapter) HashComparer(plaintext string, hashed string) (bool, error) {
 	expected := "mocked:" + plaintext
-	return hashed == expected
+	return hashed == expected, nil
 }
 
 func (m *MockUserRepository) Save(user *user_entity.User) (*user_entity.User, error) {
@@ -165,7 +165,8 @@ func TestCreate_SaveFails(t *testing.T) {
 	_, err := usecase.Create(input)
 
 	assert.Error(t, err)
-	assert.Equal(t, "cannot create new user", err.Error())
+	assert.Contains(t, err.Error(), "failed to save user")
+	assert.Contains(t, err.Error(), "save error")
 	mockRepo.AssertExpectations(t)
 	mockCrypto.AssertExpectations(t)
 }
@@ -293,7 +294,9 @@ func TestDelete_FailDelete(t *testing.T) {
 
 	err := usecase.Delete("123")
 
-	assert.EqualError(t, err, "error in delete user")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to delete user")
+	assert.Contains(t, err.Error(), "db error")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -326,6 +329,227 @@ func TestUpdate_Success(t *testing.T) {
 	assert.Equal(t, "new@example.com", user.Email)
 	mockRepo.AssertExpectations(t)
 	mockCrypto.AssertExpectations(t)
+}
+
+func TestFindAll_Error(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	mockRepo.On("FindAll").Return([]*user_entity.User(nil), errors.New("database error"))
+
+	users, err := usecase.FindAll()
+
+	assert.Error(t, err)
+	assert.Nil(t, users)
+	assert.Contains(t, err.Error(), "failed to find all users")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestFindByID_EmptyID(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	user, err := usecase.FindByID("")
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Equal(t, "user ID cannot be empty", err.Error())
+}
+
+func TestFindByID_Error(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	mockRepo.On("FindByID", "123").Return((*user_entity.User)(nil), errors.New("not found"))
+
+	user, err := usecase.FindByID("123")
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Contains(t, err.Error(), "failed to find user by ID")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdate_EmptyID(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	input := dtos.UpdateUserDto{
+		Name: strPtr("Updated"),
+	}
+
+	user, err := usecase.Update("", input)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Equal(t, "user ID cannot be empty", err.Error())
+}
+
+func TestUpdate_UserNotFound(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	mockRepo.On("FindByID", "999").Return((*user_entity.User)(nil), errors.New("not found"))
+
+	input := dtos.UpdateUserDto{
+		Name: strPtr("Updated"),
+	}
+
+	user, err := usecase.Update("999", input)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Contains(t, err.Error(), "failed to find user by ID")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdate_UserNil(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	// Simulate FindByID returning nil without error (edge case)
+	mockRepo.On("FindByID", "999").Return((*user_entity.User)(nil), nil)
+
+	input := dtos.UpdateUserDto{
+		Name: strPtr("Updated"),
+	}
+
+	user, err := usecase.Update("999", input)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Equal(t, "user not found", err.Error())
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdate_RepositoryError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	id := "123"
+	existingUser := &user_entity.User{ID: id, Email: "old@example.com"}
+	mockRepo.On("FindByID", id).Return(existingUser, nil)
+
+	input := dtos.UpdateUserDto{
+		Name: strPtr("Updated"),
+	}
+
+	mockRepo.On("Update", id, mock.Anything).Return((*user_entity.User)(nil), errors.New("update failed"))
+
+	user, err := usecase.Update(id, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Contains(t, err.Error(), "failed to update user")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdate_WithEmptyPassword(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	id := "123"
+	existingUser := &user_entity.User{ID: id, Email: "old@example.com", Password: "old-hash"}
+	mockRepo.On("FindByID", id).Return(existingUser, nil)
+
+	input := dtos.UpdateUserDto{
+		Name:     strPtr("Updated"),
+		Password: strPtr(""), // Empty password should not trigger hashing
+	}
+
+	mockRepo.On("Update", id, mock.MatchedBy(func(u *user_entity.User) bool {
+		// When empty password is provided, it gets set to empty string
+		return u.Password == ""
+	})).Return(existingUser, nil)
+
+	user, err := usecase.Update(id, input)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	mockRepo.AssertExpectations(t)
+	// Crypto should NOT be called for empty password
+	mockCrypto.AssertNotCalled(t, "Hash")
+}
+
+func TestUpdate_PasswordHashError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	id := "123"
+	existingUser := &user_entity.User{ID: id, Email: "test@example.com", Password: "old-hash"}
+	mockRepo.On("FindByID", id).Return(existingUser, nil)
+
+	input := dtos.UpdateUserDto{
+		Password: strPtr("newpassword"),
+	}
+
+	// Simulate hash error
+	mockCrypto.On("Hash", "newpassword").Return("", errors.New("hashing failed"))
+
+	user, err := usecase.Update(id, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Contains(t, err.Error(), "failed to hash password")
+	assert.Contains(t, err.Error(), "hashing failed")
+	mockRepo.AssertExpectations(t)
+	mockCrypto.AssertExpectations(t)
+}
+
+func TestDelete_EmptyID(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	err := usecase.Delete("")
+
+	assert.Error(t, err)
+	assert.Equal(t, "user ID cannot be empty", err.Error())
+}
+
+func TestDelete_UserNotFound(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockCrypto := new(MockBcryptAdapter)
+	mockEvent := new(MockEvent)
+
+	usecase := user_usecase.NewUserUsecase(mockRepo, mockCrypto, mockEvent)
+
+	mockRepo.On("FindByID", "999").Return((*user_entity.User)(nil), errors.New("not found"))
+
+	err := usecase.Delete("999")
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to find user by ID")
+	mockRepo.AssertExpectations(t)
 }
 
 func strPtr(s string) *string {

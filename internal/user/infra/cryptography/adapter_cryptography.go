@@ -1,4 +1,4 @@
-package cryptography
+package user_cryptography
 
 import (
 	portCryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
@@ -24,7 +24,10 @@ func (b *BcryptAdapter) Hash(plaintext string) (string, error) {
 	return string(bytes), err
 }
 
-func (b *BcryptAdapter) HashComparer(plaintext string, hashed string) bool {
+func (b *BcryptAdapter) HashComparer(plaintext string, hashed string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plaintext))
-	return err == nil
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

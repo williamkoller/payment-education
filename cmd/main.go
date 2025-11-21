@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/williamkoller/system-education/config"
+	authRouter "github.com/williamkoller/system-education/internal/auth/presentation/router"
 	userRouter "github.com/williamkoller/system-education/internal/user/presentation/router"
 	"github.com/williamkoller/system-education/shared/middleware"
 )
@@ -31,7 +32,8 @@ func main() {
 	g := gin.Default()
 	g.Use(gin.Recovery())
 	g.Use(middleware.GlobalErrorHandler())
-	userRouter.UserRouter(g, database, cfg.Resend)
+	userRouter.UserRouter(g, database, cfg.Resend.ApiKey, cfg.Resend.FromAddress, cfg.Secret, cfg.ExpiresIn)
+	authRouter.AuthRouter(g, database, cfg.Secret, cfg.ExpiresIn)
 
 	address := ":" + strconv.Itoa(cfg.App.Port)
 	srv := &http.Server{
