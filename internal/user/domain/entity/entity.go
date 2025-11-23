@@ -8,16 +8,16 @@ import (
 )
 
 type User struct {
-	ID           string
-	Name         string
-	Surname      string
-	Nickname     string
-	Age          int32
-	Email        string
-	Password     string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	domainEvents []sharedEvent.Event
+	ID        string
+	Name      string
+	Surname   string
+	Nickname  string
+	Age       int32
+	Email     string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	sharedEvent.AggregateRoot
 }
 
 func NewUser(u *User) *User {
@@ -66,17 +66,11 @@ func (u *User) GetPassword() string {
 	return u.Password
 }
 
-func (u *User) AddDomainEvent(e sharedEvent.Event) {
-	u.domainEvents = append(u.domainEvents, e)
-}
-
 func (u *User) PullDomainEvents() []sharedEvent.Event {
 	if u == nil {
 		return nil
 	}
-	events := u.domainEvents
-	u.domainEvents = []sharedEvent.Event{}
-	return events
+	return u.AggregateRoot.PullDomainEvents()
 }
 
 func (u *User) UpdateUser(name, nickname, email, password *string, age *int32) (*User, error) {
