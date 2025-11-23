@@ -17,7 +17,7 @@ func NewPermissionGormRepository(db *gorm.DB) *PermissionGormRepository {
 
 var _ port_permission_repository.PermissionRepository = &PermissionGormRepository{}
 
-func (r *PermissionGormRepository) Create(p *permission_entity.Permission) (*permission_entity.Permission, error) {
+func (r *PermissionGormRepository) Save(p *permission_entity.Permission) (*permission_entity.Permission, error) {
 	model := permission_model.FromEntity(p)
 	if err := r.DB.Create(&model).Error; err != nil {
 		return nil, err

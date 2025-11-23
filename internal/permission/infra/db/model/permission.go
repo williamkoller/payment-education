@@ -1,19 +1,23 @@
 package permission_model
 
 import (
-	"fmt"
+	"time"
 
+	"github.com/lib/pq"
 	permission_entity "github.com/williamkoller/system-education/internal/permission/domain/entity"
 	"gorm.io/gorm"
 )
 
 type Permission struct {
-	gorm.Model
+	ID          string `gorm:"primaryKey;type:uuid"`
 	UserID      string
-	Modules     []string `gorm:"serializer:json"`
-	Actions     []string `gorm:"serializer:json"`
+	Modules     pq.StringArray `gorm:"type:text[]"`
+	Actions     pq.StringArray `gorm:"type:text[]"`
 	Level       string
 	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
 }
 
 func (Permission) TableName() string {
@@ -25,22 +29,15 @@ func FromEntity(p *permission_entity.Permission) *Permission {
 		return nil
 	}
 	return &Permission{
-		Model:       gorm.Model{ID: stringToUint(p.ID)},
+		ID:          p.ID,
 		UserID:      p.UserID,
-		Modules:     p.Modules,
-		Actions:     p.Actions,
+		Modules:     pq.StringArray(p.Modules),
+		Actions:     pq.StringArray(p.Actions),
 		Level:       p.Level,
 		Description: p.Description,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
 	}
-}
-
-func stringToUint(s string) uint {
-	if s == "" {
-		return 0
-	}
-	var id uint
-	fmt.Sscanf(s, "%d", &id)
-	return id
 }
 
 func FromEntities(ps []*permission_entity.Permission) []*Permission {
@@ -56,12 +53,14 @@ func ToEntity(p *Permission) *permission_entity.Permission {
 		return nil
 	}
 	return &permission_entity.Permission{
-		ID:          fmt.Sprintf("%d", p.ID),
+		ID:          p.ID,
 		UserID:      p.UserID,
-		Modules:     p.Modules,
-		Actions:     p.Actions,
+		Modules:     []string(p.Modules),
+		Actions:     []string(p.Actions),
 		Level:       p.Level,
 		Description: p.Description,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
 	}
 }
 

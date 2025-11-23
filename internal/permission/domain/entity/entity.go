@@ -17,7 +17,6 @@ type Permission struct {
 	Description string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   time.Time
 }
 
 func NewPermission(p *Permission) (*Permission, error) {
@@ -34,7 +33,6 @@ func NewPermission(p *Permission) (*Permission, error) {
 		Description: vp.Description,
 		CreatedAt:   vp.CreatedAt,
 		UpdatedAt:   vp.UpdatedAt,
-		DeletedAt:   vp.DeletedAt,
 	}
 
 	permission.AddDomainEvent(permission_event.NewPermissionCreatedEvent(permission.ID, permission.UserID, permission.Modules, permission.Actions, permission.Level, permission.Description))
@@ -43,39 +41,59 @@ func NewPermission(p *Permission) (*Permission, error) {
 }
 
 func (p *Permission) GetID() string {
+	if p == nil {
+		return ""
+	}
 	return p.ID
 }
 
 func (p *Permission) GetUserID() string {
+	if p == nil {
+		return ""
+	}
 	return p.UserID
 }
 
 func (p *Permission) GetModules() []string {
+	if p == nil {
+		return nil
+	}
 	return p.Modules
 }
 
 func (p *Permission) GetActions() []string {
+	if p == nil {
+		return nil
+	}
 	return p.Actions
 }
 
 func (p *Permission) GetLevel() string {
+	if p == nil {
+		return ""
+	}
 	return p.Level
 }
 
 func (p *Permission) GetDescription() string {
+	if p == nil {
+		return ""
+	}
 	return p.Description
 }
 
 func (p *Permission) GetCreatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
 	return p.CreatedAt
 }
 
 func (p *Permission) GetUpdatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
 	return p.UpdatedAt
-}
-
-func (p *Permission) GetDeletedAt() time.Time {
-	return p.DeletedAt
 }
 
 func (p *Permission) PullDomainEvents() []sharedEvent.Event {

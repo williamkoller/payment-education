@@ -111,31 +111,51 @@ func TestNewPermission(t *testing.T) {
 		assert.Nil(t, permission)
 		assert.Contains(t, err.Error(), "level is required")
 	})
+	t.Run("should return error when permission is nil", func(t *testing.T) {
+		permission, err := NewPermission(nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, permission)
+		assert.Contains(t, err.Error(), "permission is required")
+	})
 }
 
 func TestPermission_Getters(t *testing.T) {
-	now := time.Now()
-	p := &Permission{
-		ID:          "123",
-		UserID:      "user-123",
-		Modules:     []string{"module1"},
-		Actions:     []string{"read"},
-		Level:       "admin",
-		Description: "test permission",
-		CreatedAt:   now,
-		UpdatedAt:   now,
-		DeletedAt:   now,
-	}
+	t.Run("should return values when permission is valid", func(t *testing.T) {
+		now := time.Now()
+		p := &Permission{
+			ID:          "123",
+			UserID:      "user-123",
+			Modules:     []string{"module1"},
+			Actions:     []string{"read"},
+			Level:       "admin",
+			Description: "test permission",
+			CreatedAt:   now,
+			UpdatedAt:   now,
+		}
 
-	assert.Equal(t, "123", p.GetID())
-	assert.Equal(t, "user-123", p.GetUserID())
-	assert.Equal(t, []string{"module1"}, p.GetModules())
-	assert.Equal(t, []string{"read"}, p.GetActions())
-	assert.Equal(t, "admin", p.GetLevel())
-	assert.Equal(t, "test permission", p.GetDescription())
-	assert.Equal(t, now, p.GetCreatedAt())
-	assert.Equal(t, now, p.GetUpdatedAt())
-	assert.Equal(t, now, p.GetDeletedAt())
+		assert.Equal(t, "123", p.GetID())
+		assert.Equal(t, "user-123", p.GetUserID())
+		assert.Equal(t, []string{"module1"}, p.GetModules())
+		assert.Equal(t, []string{"read"}, p.GetActions())
+		assert.Equal(t, "admin", p.GetLevel())
+		assert.Equal(t, "test permission", p.GetDescription())
+		assert.Equal(t, now, p.GetCreatedAt())
+		assert.Equal(t, now, p.GetUpdatedAt())
+	})
+
+	t.Run("should return zero values when permission is nil", func(t *testing.T) {
+		var p *Permission
+
+		assert.Equal(t, "", p.GetID())
+		assert.Equal(t, "", p.GetUserID())
+		assert.Nil(t, p.GetModules())
+		assert.Nil(t, p.GetActions())
+		assert.Equal(t, "", p.GetLevel())
+		assert.Equal(t, "", p.GetDescription())
+		assert.True(t, p.GetCreatedAt().IsZero())
+		assert.True(t, p.GetUpdatedAt().IsZero())
+	})
 }
 
 func TestPermission_PullDomainEvents(t *testing.T) {

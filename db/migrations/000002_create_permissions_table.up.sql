@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS permissions (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     modules TEXT[] NOT NULL,
     actions TEXT[] NOT NULL,

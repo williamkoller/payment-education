@@ -34,6 +34,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func (s *PermissionGormRepositorySuite) TestCreate() {
 	permission := &permission_entity.Permission{
+		ID:          "perm-1",
 		UserID:      "user-123",
 		Modules:     []string{"module1"},
 		Actions:     []string{"read"},
@@ -41,11 +42,11 @@ func (s *PermissionGormRepositorySuite) TestCreate() {
 		Description: "test permission",
 	}
 
-	createdPermission, err := s.repository.Create(permission)
+	createdPermission, err := s.repository.Save(permission)
 
 	s.NoError(err)
 	s.NotNil(createdPermission)
-	s.NotEmpty(createdPermission.ID)
+	s.Equal(permission.ID, createdPermission.ID)
 	s.Equal(permission.UserID, createdPermission.UserID)
 	s.Equal(permission.Modules, createdPermission.Modules)
 	s.Equal(permission.Actions, createdPermission.Actions)
@@ -55,6 +56,7 @@ func (s *PermissionGormRepositorySuite) TestCreate() {
 
 func (s *PermissionGormRepositorySuite) TestCreate_Error() {
 	permission := &permission_entity.Permission{
+		ID:          "perm-2",
 		UserID:      "user-123",
 		Modules:     []string{"module1"},
 		Actions:     []string{"read"},
@@ -65,7 +67,7 @@ func (s *PermissionGormRepositorySuite) TestCreate_Error() {
 	sqlDB, _ := s.db.DB()
 	sqlDB.Close()
 
-	createdPermission, err := s.repository.Create(permission)
+	createdPermission, err := s.repository.Save(permission)
 
 	s.Error(err)
 	s.Nil(createdPermission)
@@ -73,13 +75,14 @@ func (s *PermissionGormRepositorySuite) TestCreate_Error() {
 
 func (s *PermissionGormRepositorySuite) TestFindByID() {
 	permission := &permission_entity.Permission{
+		ID:          "perm-3",
 		UserID:      "user-123",
 		Modules:     []string{"module1"},
 		Actions:     []string{"read"},
 		Level:       "admin",
 		Description: "test permission",
 	}
-	created, _ := s.repository.Create(permission)
+	created, _ := s.repository.Save(permission)
 
 	foundPermission, err := s.repository.FindByID(created.ID)
 
@@ -100,10 +103,10 @@ func (s *PermissionGormRepositorySuite) TestFindByID_Error() {
 }
 
 func (s *PermissionGormRepositorySuite) TestFindAll() {
-	permission1 := &permission_entity.Permission{UserID: "user-1"}
-	permission2 := &permission_entity.Permission{UserID: "user-2"}
-	s.repository.Create(permission1)
-	s.repository.Create(permission2)
+	permission1 := &permission_entity.Permission{ID: "perm-4", UserID: "user-1"}
+	permission2 := &permission_entity.Permission{ID: "perm-5", UserID: "user-2"}
+	s.repository.Save(permission1)
+	s.repository.Save(permission2)
 
 	permissions, err := s.repository.FindAll()
 
@@ -123,13 +126,14 @@ func (s *PermissionGormRepositorySuite) TestFindAll_Error() {
 
 func (s *PermissionGormRepositorySuite) TestUpdate() {
 	permission := &permission_entity.Permission{
+		ID:          "perm-6",
 		UserID:      "user-123",
 		Modules:     []string{"module1"},
 		Actions:     []string{"read"},
 		Level:       "admin",
 		Description: "test permission",
 	}
-	created, _ := s.repository.Create(permission)
+	created, _ := s.repository.Save(permission)
 
 	created.Description = "updated permission"
 	updatedPermission, err := s.repository.Update(created.ID, created)
@@ -144,10 +148,11 @@ func (s *PermissionGormRepositorySuite) TestUpdate() {
 
 func (s *PermissionGormRepositorySuite) TestUpdate_Error() {
 	permission := &permission_entity.Permission{
+		ID:     "perm-7",
 		UserID: "user-123",
 	}
 	// Create first to have something to update (though we'll fail anyway)
-	created, _ := s.repository.Create(permission)
+	created, _ := s.repository.Save(permission)
 
 	sqlDB, _ := s.db.DB()
 	sqlDB.Close()
@@ -159,8 +164,8 @@ func (s *PermissionGormRepositorySuite) TestUpdate_Error() {
 }
 
 func (s *PermissionGormRepositorySuite) TestDelete() {
-	permission := &permission_entity.Permission{UserID: "user-123"}
-	created, _ := s.repository.Create(permission)
+	permission := &permission_entity.Permission{ID: "perm-8", UserID: "user-123"}
+	created, _ := s.repository.Save(permission)
 
 	err := s.repository.Delete(created.ID)
 
@@ -181,12 +186,12 @@ func (s *PermissionGormRepositorySuite) TestDelete_Error() {
 }
 
 func (s *PermissionGormRepositorySuite) TestFindPermissionByUserID() {
-	permission1 := &permission_entity.Permission{UserID: "user-123"}
-	permission2 := &permission_entity.Permission{UserID: "user-123"}
-	permission3 := &permission_entity.Permission{UserID: "user-456"}
-	s.repository.Create(permission1)
-	s.repository.Create(permission2)
-	s.repository.Create(permission3)
+	permission1 := &permission_entity.Permission{ID: "perm-9", UserID: "user-123"}
+	permission2 := &permission_entity.Permission{ID: "perm-10", UserID: "user-123"}
+	permission3 := &permission_entity.Permission{ID: "perm-11", UserID: "user-456"}
+	s.repository.Save(permission1)
+	s.repository.Save(permission2)
+	s.repository.Save(permission3)
 
 	permissions, err := s.repository.FindPermissionByUserID("user-123")
 

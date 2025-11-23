@@ -16,6 +16,10 @@ func (v *ValidationError) Error() string {
 func ValidatePermission(permission *Permission) (*Permission, error) {
 	var errs []string
 
+	if permission == nil {
+		return nil, &ValidationError{Errors: []string{"permission is required"}}
+	}
+
 	if permission.ID == "" {
 		errs = append(errs, "id is required")
 	}
