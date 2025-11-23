@@ -150,7 +150,7 @@ func TestPermission_PullDomainEvents(t *testing.T) {
 
 		assert.Len(t, events, 1)
 		assert.Equal(t, event, events[0])
-		assert.Empty(t, p.domainEvents)
+		assert.Empty(t, p.PullDomainEvents())
 	})
 
 	t.Run("should return nil when permission is nil", func(t *testing.T) {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	sharedEvent "github.com/williamkoller/system-education/shared/domain/event"
 )
 
 func TestNewUser(t *testing.T) {
@@ -42,6 +41,76 @@ func TestNewUser(t *testing.T) {
 	})
 }
 
+type MockEvent struct{}
+
+func (m MockEvent) EventName() string {
+	return "MockEvent"
+}
+
+func (m MockEvent) OccurredOn() time.Time {
+	return time.Now()
+}
+
+func TestPullDomainEvents(t *testing.T) {
+	tests := []struct {
+		name           string
+		user           *User
+		setup          func(*User)
+		expectedEvents int
+		expectedName   string
+	}{
+		{
+			name: "should return events and clear them",
+			user: &User{
+				ID:    "1",
+				Name:  "Alice",
+				Email: "alice@example.com",
+			},
+			setup: func(u *User) {
+				u.AddDomainEvent(MockEvent{})
+			},
+			expectedEvents: 1,
+			expectedName:   "MockEvent",
+		},
+		{
+			name: "should return empty when no events",
+			user: &User{
+				ID:    "1",
+				Name:  "Alice",
+				Email: "alice@example.com",
+			},
+			setup:          func(u *User) {},
+			expectedEvents: 0,
+		},
+		{
+			name:           "should return nil when user is nil",
+			user:           nil,
+			setup:          func(u *User) {},
+			expectedEvents: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil && tt.user != nil {
+				tt.setup(tt.user)
+			}
+
+			events := tt.user.PullDomainEvents()
+
+			if tt.user == nil {
+				assert.Nil(t, events)
+			} else {
+				assert.Len(t, events, tt.expectedEvents)
+				if tt.expectedEvents > 0 {
+					assert.Equal(t, tt.expectedName, events[0].EventName())
+					assert.Empty(t, tt.user.PullDomainEvents())
+				}
+			}
+		})
+	}
+}
+
 func TestUser_Getters(t *testing.T) {
 	user := &User{
 		ID:       "abc123",
@@ -62,225 +131,314 @@ func TestUser_Getters(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	t.Run("should update user successfully when valid values provided", func(t *testing.T) {
-		user := &User{
-			ID:       "abc123",
-			Name:     "Carlos",
-			Surname:  "Silva",
-			Nickname: "casilva",
-			Age:      35,
-			Email:    "carlos@example.com",
-			Password: "secret123",
+	name := "New Name"
+	nickname := "new_nick"
+	email := "new@example.com"
+	password := "new_pass"
+	age := int32(30)
+	invalidEmail := "invalid"
+	negativeAge := int32(-1)
+
+	tests := []struct {
+		name  string
+		user  *User
+		input struct {
+			name     *string
+			nickname *string
+			email    *string
+			password *string
+			age      *int32
 		}
-
-		newName := "Joao"
-		newNickname := "C"
-		newEmail := "joao.dev@mail.com"
-		newPassword := "secret123456"
-		newAge := int32(36)
-
-		updated, err := user.UpdateUser(&newName, &newNickname, &newEmail, &newPassword, &newAge)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, updated)
-		assert.Equal(t, newName, updated.Name)
-		assert.Equal(t, newNickname, updated.Nickname)
-		assert.Equal(t, newEmail, updated.Email)
-		assert.Equal(t, newPassword, updated.Password)
-		assert.Equal(t, newAge, updated.Age)
-	})
-
-}
-
-type MockEvent struct{}
-
-func (m MockEvent) EventName() string {
-	return "MockEvent"
-}
-
-func (m MockEvent) OccurredOn() time.Time {
-	return time.Now()
-}
-
-func TestPullDomainEvents(t *testing.T) {
-	user := &User{
-		ID:           "1",
-		Name:         "Alice",
-		Email:        "alice@example.com",
-		domainEvents: []sharedEvent.Event{MockEvent{}},
+		expected    *User
+		expectError bool
+		errMessage  string
+	}{
+		{
+			name: "should update all fields successfully",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				name:     &name,
+				nickname: &nickname,
+				email:    &email,
+				password: &password,
+				age:      &age,
+			},
+			expected: &User{
+				ID:       "123",
+				Name:     name,
+				Surname:  "User",
+				Nickname: nickname,
+				Age:      age,
+				Email:    email,
+				Password: password,
+			},
+			expectError: false,
+		},
+		{
+			name: "should update only name",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				name: &name,
+			},
+			expected: &User{
+				ID:       "123",
+				Name:     name,
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			expectError: false,
+		},
+		{
+			name: "should update only nickname",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				nickname: &nickname,
+			},
+			expected: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: nickname,
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			expectError: false,
+		},
+		{
+			name: "should update only email",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				email: &email,
+			},
+			expected: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    email,
+				Password: "oldpass",
+			},
+			expectError: false,
+		},
+		{
+			name: "should update only password",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				password: &password,
+			},
+			expected: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: password,
+			},
+			expectError: false,
+		},
+		{
+			name: "should update only age",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				age: &age,
+			},
+			expected: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      age,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			expectError: false,
+		},
+		{
+			name: "should not update any fields when all inputs are nil",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{},
+			expected: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			expectError: false,
+		},
+		{
+			name: "should return error when email is invalid",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				email: &invalidEmail,
+			},
+			expected:    nil,
+			expectError: true,
+			errMessage:  "email is invalid",
+		},
+		{
+			name: "should return error when age is negative",
+			user: &User{
+				ID:       "123",
+				Name:     "Old",
+				Surname:  "User",
+				Nickname: "old",
+				Age:      20,
+				Email:    "old@example.com",
+				Password: "oldpass",
+			},
+			input: struct {
+				name     *string
+				nickname *string
+				email    *string
+				password *string
+				age      *int32
+			}{
+				age: &negativeAge,
+			},
+			expected:    nil,
+			expectError: true,
+			errMessage:  "age cannot be negative",
+		},
 	}
 
-	events := user.PullDomainEvents()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			updated, err := tt.user.UpdateUser(tt.input.name, tt.input.nickname, tt.input.email, tt.input.password, tt.input.age)
 
-	assert.Len(t, events, 1)
-	assert.Equal(t, "MockEvent", events[0].EventName())
-	assert.Empty(t, user.PullDomainEvents())
-}
-
-func TestPullDomainEvents_NilUser(t *testing.T) {
-	var user *User
-	events := user.PullDomainEvents()
-	assert.Nil(t, events)
-}
-
-func TestUpdateUser_PartialUpdate(t *testing.T) {
-	t.Run("update only name", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Original",
-			Surname:  "User",
-			Nickname: "original",
-			Age:      25,
-			Email:    "original@example.com",
-			Password: "pass123",
-		}
-
-		newName := "Updated"
-		updated, err := user.UpdateUser(&newName, nil, nil, nil, nil)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, updated)
-		assert.Equal(t, "Updated", updated.Name)
-		assert.Equal(t, "original", updated.Nickname)          // unchanged
-		assert.Equal(t, "original@example.com", updated.Email) // unchanged
-	})
-
-	t.Run("update only nickname", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Test",
-			Surname:  "User",
-			Nickname: "old",
-			Age:      25,
-			Email:    "test@example.com",
-			Password: "pass123",
-		}
-
-		newNickname := "new"
-		updated, err := user.UpdateUser(nil, &newNickname, nil, nil, nil)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "new", updated.Nickname)
-		assert.Equal(t, "Test", updated.Name) // unchanged
-	})
-
-	t.Run("update only email", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Test",
-			Surname:  "User",
-			Nickname: "test",
-			Age:      25,
-			Email:    "old@example.com",
-			Password: "pass123",
-		}
-
-		newEmail := "new@example.com"
-		updated, err := user.UpdateUser(nil, nil, &newEmail, nil, nil)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "new@example.com", updated.Email)
-	})
-
-	t.Run("update only password", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Test",
-			Surname:  "User",
-			Nickname: "test",
-			Age:      25,
-			Email:    "test@example.com",
-			Password: "oldpass",
-		}
-
-		newPassword := "newpass"
-		updated, err := user.UpdateUser(nil, nil, nil, &newPassword, nil)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "newpass", updated.Password)
-	})
-
-	t.Run("update only age", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Test",
-			Surname:  "User",
-			Nickname: "test",
-			Age:      25,
-			Email:    "test@example.com",
-			Password: "pass123",
-		}
-
-		newAge := int32(30)
-		updated, err := user.UpdateUser(nil, nil, nil, nil, &newAge)
-
-		assert.NoError(t, err)
-		assert.Equal(t, int32(30), updated.Age)
-	})
-
-	t.Run("update with validation error - invalid email", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Test",
-			Surname:  "User",
-			Nickname: "test",
-			Age:      25,
-			Email:    "test@example.com",
-			Password: "pass123",
-		}
-
-		invalidEmail := "invalid-email"
-		updated, err := user.UpdateUser(nil, nil, &invalidEmail, nil, nil)
-
-		assert.Error(t, err)
-		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "email is invalid")
-	})
-
-	t.Run("update with validation error - negative age", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Test",
-			Surname:  "User",
-			Nickname: "test",
-			Age:      25,
-			Email:    "test@example.com",
-			Password: "pass123",
-		}
-
-		negativeAge := int32(-5)
-		updated, err := user.UpdateUser(nil, nil, nil, nil, &negativeAge)
-
-		assert.Error(t, err)
-		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "age cannot be negative")
-	})
-
-	t.Run("update all fields at once", func(t *testing.T) {
-		user := &User{
-			ID:       "123",
-			Name:     "Old",
-			Surname:  "User",
-			Nickname: "old",
-			Age:      20,
-			Email:    "old@example.com",
-			Password: "oldpass",
-		}
-
-		newName := "New"
-		newNickname := "new"
-		newEmail := "new@example.com"
-		newPassword := "newpass"
-		newAge := int32(25)
-
-		updated, err := user.UpdateUser(&newName, &newNickname, &newEmail, &newPassword, &newAge)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, updated)
-		assert.Equal(t, "New", updated.Name)
-		assert.Equal(t, "new", updated.Nickname)
-		assert.Equal(t, "new@example.com", updated.Email)
-		assert.Equal(t, "newpass", updated.Password)
-		assert.Equal(t, int32(25), updated.Age)
-	})
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Nil(t, updated)
+				assert.Contains(t, err.Error(), tt.errMessage)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, updated)
+				assert.Equal(t, tt.expected.Name, updated.Name)
+				assert.Equal(t, tt.expected.Nickname, updated.Nickname)
+				assert.Equal(t, tt.expected.Email, updated.Email)
+				assert.Equal(t, tt.expected.Password, updated.Password)
+				assert.Equal(t, tt.expected.Age, updated.Age)
+			}
+		})
+	}
 }

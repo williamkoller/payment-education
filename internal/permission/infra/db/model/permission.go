@@ -1,17 +1,19 @@
 package permission_model
 
 import (
+	"fmt"
+
 	permission_entity "github.com/williamkoller/system-education/internal/permission/domain/entity"
 	"gorm.io/gorm"
 )
 
 type Permission struct {
 	gorm.Model
-	UserID       string
-	Modules      []string
-	Actions      []string
-	Level        string
-	Description  string
+	UserID      string
+	Modules     []string `gorm:"serializer:json"`
+	Actions     []string `gorm:"serializer:json"`
+	Level       string
+	Description string
 }
 
 func (Permission) TableName() string {
@@ -23,12 +25,22 @@ func FromEntity(p *permission_entity.Permission) *Permission {
 		return nil
 	}
 	return &Permission{
+		Model:       gorm.Model{ID: stringToUint(p.ID)},
 		UserID:      p.UserID,
 		Modules:     p.Modules,
 		Actions:     p.Actions,
 		Level:       p.Level,
 		Description: p.Description,
 	}
+}
+
+func stringToUint(s string) uint {
+	if s == "" {
+		return 0
+	}
+	var id uint
+	fmt.Sscanf(s, "%d", &id)
+	return id
 }
 
 func FromEntities(ps []*permission_entity.Permission) []*Permission {
@@ -44,6 +56,7 @@ func ToEntity(p *Permission) *permission_entity.Permission {
 		return nil
 	}
 	return &permission_entity.Permission{
+		ID:          fmt.Sprintf("%d", p.ID),
 		UserID:      p.UserID,
 		Modules:     p.Modules,
 		Actions:     p.Actions,

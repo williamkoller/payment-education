@@ -8,16 +8,16 @@ import (
 )
 
 type Permission struct {
-	ID           string
-	UserID       string
-	Modules      []string
-	Actions      []string
-	Level        string
-	Description  string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    time.Time
-	domainEvents []sharedEvent.Event
+	sharedEvent.AggregateRoot
+	ID          string
+	UserID      string
+	Modules     []string
+	Actions     []string
+	Level       string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   time.Time
 }
 
 func NewPermission(p *Permission) (*Permission, error) {
@@ -78,15 +78,9 @@ func (p *Permission) GetDeletedAt() time.Time {
 	return p.DeletedAt
 }
 
-func (p *Permission) AddDomainEvent(e sharedEvent.Event) {
-	p.domainEvents = append(p.domainEvents, e)
-}
-
 func (p *Permission) PullDomainEvents() []sharedEvent.Event {
 	if p == nil {
 		return nil
 	}
-	events := p.domainEvents
-	p.domainEvents = []sharedEvent.Event{}
-	return events
+	return p.AggregateRoot.PullDomainEvents()
 }
