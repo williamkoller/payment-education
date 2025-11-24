@@ -93,12 +93,21 @@ func (s *PermissionGormRepositorySuite) TestFindByID() {
 }
 
 func (s *PermissionGormRepositorySuite) TestFindByID_Error() {
+	foundPermission, err := s.repository.FindByID("some-id")
+
+	s.Error(err)
+	s.Equal(permission_entity.ErrNotFound, err)
+	s.Nil(foundPermission)
+}
+
+func (s *PermissionGormRepositorySuite) TestFindByID_DBError() {
 	sqlDB, _ := s.db.DB()
 	sqlDB.Close()
 
 	foundPermission, err := s.repository.FindByID("some-id")
 
 	s.Error(err)
+	s.NotEqual(permission_entity.ErrNotFound, err)
 	s.Nil(foundPermission)
 }
 
@@ -151,7 +160,19 @@ func (s *PermissionGormRepositorySuite) TestUpdate_Error() {
 		ID:     "perm-7",
 		UserID: "user-123",
 	}
-	// Create first to have something to update (though we'll fail anyway)
+
+	updatedPermission, err := s.repository.Update(permission.ID, permission)
+
+	s.Error(err)
+	s.Equal(permission_entity.ErrNotFound, err)
+	s.Nil(updatedPermission)
+}
+
+func (s *PermissionGormRepositorySuite) TestUpdate_DBError() {
+	permission := &permission_entity.Permission{
+		ID:     "perm-7",
+		UserID: "user-123",
+	}
 	created, _ := s.repository.Save(permission)
 
 	sqlDB, _ := s.db.DB()
@@ -160,6 +181,7 @@ func (s *PermissionGormRepositorySuite) TestUpdate_Error() {
 	updatedPermission, err := s.repository.Update(created.ID, created)
 
 	s.Error(err)
+	s.NotEqual(permission_entity.ErrNotFound, err)
 	s.Nil(updatedPermission)
 }
 
@@ -177,12 +199,20 @@ func (s *PermissionGormRepositorySuite) TestDelete() {
 }
 
 func (s *PermissionGormRepositorySuite) TestDelete_Error() {
+	err := s.repository.Delete("some-id")
+
+	s.Error(err)
+	s.Equal(permission_entity.ErrNotFound, err)
+}
+
+func (s *PermissionGormRepositorySuite) TestDelete_DBError() {
 	sqlDB, _ := s.db.DB()
 	sqlDB.Close()
 
 	err := s.repository.Delete("some-id")
 
 	s.Error(err)
+	s.NotEqual(permission_entity.ErrNotFound, err)
 }
 
 func (s *PermissionGormRepositorySuite) TestFindPermissionByUserID() {
