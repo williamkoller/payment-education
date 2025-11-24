@@ -46,10 +46,12 @@ func (a *AuthUsecase) Login(email, password string) (string, error) {
 
 	// Fetch user permissions and extract modules
 	modules := []string{}
+	actions := []string{}
 	permissions, err := a.permissionRepo.FindPermissionByUserID(user.ID)
 	if err == nil && len(permissions) > 0 {
 		for _, permission := range permissions {
 			modules = append(modules, permission.GetModules()...)
+			actions = append(actions, permission.GetActions()...)
 		}
 	}
 
@@ -59,6 +61,7 @@ func (a *AuthUsecase) Login(email, password string) (string, error) {
 		"nick_name":  user.Nickname,
 		"email":      user.Email,
 		"modules":    modules,
+		"actions":    actions,
 		"created_at": user.CreatedAt,
 		"updated_at": user.UpdatedAt,
 	}

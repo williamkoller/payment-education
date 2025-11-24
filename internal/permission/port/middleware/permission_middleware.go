@@ -5,5 +5,5 @@ import (
 )
 
 type PermissionMiddleware interface {
-	ModuleAccessMiddleware(requiredModules []string) gin.HandlerFunc
+	ModuleAccessMiddleware(requiredModules []string, requiredActions []string) gin.HandlerFunc
 }

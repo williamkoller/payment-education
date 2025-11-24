@@ -15,8 +15,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/williamkoller/system-education/config"
 	auth_router "github.com/williamkoller/system-education/internal/auth/presentation/router"
-	user_router "github.com/williamkoller/system-education/internal/user/presentation/router"
 	permission_router "github.com/williamkoller/system-education/internal/permission/presentation/router"
+	user_router "github.com/williamkoller/system-education/internal/user/presentation/router"
 	"github.com/williamkoller/system-education/shared/middleware"
 )
 
@@ -35,7 +35,7 @@ func main() {
 	g.Use(middleware.GlobalErrorHandler())
 	user_router.UserRouter(g, database, cfg.Resend.ApiKey, cfg.Resend.FromAddress, cfg.Secret, cfg.ExpiresIn)
 	auth_router.AuthRouter(g, database, cfg.Secret, cfg.ExpiresIn)
-	permission_router.PermissionRouter(g, database)
+	permission_router.PermissionRouter(g, database, cfg.Secret, cfg.ExpiresIn)
 
 	address := ":" + strconv.Itoa(cfg.App.Port)
 	srv := &http.Server{

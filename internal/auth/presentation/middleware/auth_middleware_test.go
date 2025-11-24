@@ -282,3 +282,51 @@ func TestAuthMiddleware_ContextPropagation(t *testing.T) {
 	assert.NotNil(t, capturedModules)
 	mockJWT.AssertExpectations(t)
 }
+
+func TestAuthMiddleware_WithActionsInClaims(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockJWT := new(MockTokenManager)
+	token := "valid.jwt.token"
+
+	claims := map[string]interface{}{
+		"email":   "user@example.com",
+		"user_id": "user-123",
+		"modules": []interface{}{"admin", "user"},
+		"actions": []interface{}{"read", "delete", "update"},
+	}
+
+	mockJWT.On("Verify", token).Return(claims, nil)
+
+	router := gin.New()
+	router.GET("/test", AuthMiddleware(mockJWT), func(c *gin.Context) {
+		// Verify all claims were set in context
+		email, _ := c.Get("userEmail")
+		userID, _ := c.Get("userID")
+		modules, _ := c.Get("modules")
+		actions, actionsExist := c.Get("actions")
+
+		c.JSON(http.StatusOK, gin.H{
+			"email":         email,
+			"user_id":       userID,
+			"modules":       modules,
+			"actions":       actions,
+			"actions_exist": actionsExist,
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "user@example.com")
+	assert.Contains(t, w.Body.String(), "user-123")
+	assert.Contains(t, w.Body.String(), `"actions_exist":true`)
+	assert.Contains(t, w.Body.String(), "read")
+	assert.Contains(t, w.Body.String(), "delete")
+	assert.Contains(t, w.Body.String(), "update")
+	mockJWT.AssertExpectations(t)
+}

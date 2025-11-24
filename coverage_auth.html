@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>usecase: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/williamkoller/system-education/internal/auth/application/usecase/auth_usecase.go (100.0%)</option>
+				
+				<option value="file1">github.com/williamkoller/system-education/internal/auth/infra/cryptography/jwt_token_manager.go (89.5%)</option>
+				
+				<option value="file2">github.com/williamkoller/system-education/internal/auth/presentation/handler/auth_handler.go (0.0%)</option>
+				
+				<option value="file3">github.com/williamkoller/system-education/internal/auth/presentation/middleware/auth_middleware.go (100.0%)</option>
+				
+				<option value="file4">github.com/williamkoller/system-education/internal/auth/presentation/router/auth_router.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package auth_usecase
+
+import (
+        "errors"
+
+        port_auth_cryptography "github.com/williamkoller/system-education/internal/auth/port/cryptography"
+        port_auth_usecase "github.com/williamkoller/system-education/internal/auth/port/usecase"
+        port_permission_repository "github.com/williamkoller/system-education/internal/permission/port/repository"
+        port_cryptography "github.com/williamkoller/system-education/internal/user/port/cryptography"
+        port_user_repository "github.com/williamkoller/system-education/internal/user/port/repository"
+)
+
+type AuthUsecase struct {
+        repo            port_user_repository.UserRepository
+        permissionRepo  port_permission_repository.PermissionRepository
+        jwtTokenManager port_auth_cryptography.TokenManager
+        passwordHasher  port_cryptography.Bcrypt
+}
+
+var _ port_auth_usecase.AuthUsecase = &amp;AuthUsecase{}
+
+func NewAuthUsecase(
+        repo port_user_repository.UserRepository,
+        permissionRepo port_permission_repository.PermissionRepository,
+        jwtTokenManager port_auth_cryptography.TokenManager,
+        passwordHasher port_cryptography.Bcrypt,
+) *AuthUsecase <span class="cov8" title="1">{
+        return &amp;AuthUsecase{
+                repo:            repo,
+                permissionRepo:  permissionRepo,
+                jwtTokenManager: jwtTokenManager,
+                passwordHasher:  passwordHasher,
+        }
+}</span>
+
+func (a *AuthUsecase) Login(email, password string) (string, error) <span class="cov8" title="1">{
+        user, err := a.repo.FindByEmail(email)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return "", errors.New("user not found")
+        }</span>
+
+        <span class="cov8" title="1">if _, err := a.passwordHasher.HashComparer(password, user.Password); err != nil </span><span class="cov8" title="1">{
+                return "", errors.New("invalid credentials")
+        }</span>
+
+        // Fetch user permissions and extract modules
+        <span class="cov8" title="1">modules := []string{}
+        actions := []string{}
+        permissions, err := a.permissionRepo.FindPermissionByUserID(user.ID)
+        if err == nil &amp;&amp; len(permissions) &gt; 0 </span><span class="cov8" title="1">{
+                for _, permission := range permissions </span><span class="cov8" title="1">{
+                        modules = append(modules, permission.GetModules()...)
+                        actions = append(actions, permission.GetActions()...)
+                }</span>
+        }
+
+        <span class="cov8" title="1">userSign := map[string]interface{}{
+                "user_id":    user.ID,
+                "name":       user.Name,
+                "nick_name":  user.Nickname,
+                "email":      user.Email,
+                "modules":    modules,
+                "actions":    actions,
+                "created_at": user.CreatedAt,
+                "updated_at": user.UpdatedAt,
+        }
+
+        token, err := a.jwtTokenManager.Sign(userSign)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return "", errors.New("error in generate token")
+        }</span>
+
+        <span class="cov8" title="1">return token, nil</span>
+}
+
+func (a *AuthUsecase) Profile(email string) (string, error) <span class="cov8" title="1">{
+        user, err := a.repo.FindByEmail(email)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return "", errors.New("user not found")
+        }</span>
+
+        <span class="cov8" title="1">return user.Email, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package infra_cryptography
+
+import (
+        "errors"
+        "time"
+
+        "github.com/golang-jwt/jwt/v5"
+        port_cryptography "github.com/williamkoller/system-education/internal/auth/port/cryptography"
+)
+
+type JWTTokenManager struct {
+        secretKey string
+        expiresIn time.Duration
+}
+
+var _ port_cryptography.TokenManager = &amp;JWTTokenManager{}
+
+func NewJWTTokenManager(secret string, expiresIn time.Duration) *JWTTokenManager <span class="cov8" title="1">{
+        return &amp;JWTTokenManager{secretKey: secret, expiresIn: expiresIn}
+}</span>
+
+func (j *JWTTokenManager) Verify(tokenStr string) (map[string]interface{}, error) <span class="cov8" title="1">{
+        token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) </span><span class="cov8" title="1">{
+                if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok </span><span class="cov0" title="0">{
+                        return nil, errors.New("unexpected signing method")
+                }</span>
+                <span class="cov8" title="1">return []byte(j.secretKey), nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil || !token.Valid </span><span class="cov8" title="1">{
+                return nil, errors.New("invalid token")
+        }</span>
+
+        <span class="cov8" title="1">if claims, ok := token.Claims.(jwt.MapClaims); ok </span><span class="cov8" title="1">{
+                result := make(map[string]interface{})
+                for k, v := range claims </span><span class="cov8" title="1">{
+                        result[k] = v
+                }</span>
+                <span class="cov8" title="1">return result, nil</span>
+        }
+
+        <span class="cov0" title="0">return nil, errors.New("could not parse claims")</span>
+}
+
+func (j *JWTTokenManager) Sign(data map[string]interface{}) (string, error) <span class="cov8" title="1">{
+        claims := jwt.MapClaims{}
+
+        for k, v := range data </span><span class="cov8" title="1">{
+                claims[k] = v
+        }</span>
+
+        <span class="cov8" title="1">claims["exp"] = time.Now().Add(j.expiresIn).Unix()
+        token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+        return token.SignedString([]byte(j.secretKey))</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package auth_handler
+
+import (
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+        port_auth_handler "github.com/williamkoller/system-education/internal/auth/port/handler"
+        port_auth_usecase "github.com/williamkoller/system-education/internal/auth/port/usecase"
+        auth_dtos "github.com/williamkoller/system-education/internal/auth/presentation/dtos"
+)
+
+type AuthHandler struct {
+        usecase port_auth_usecase.AuthUsecase
+}
+
+func NewAuthHandler(usecase port_auth_usecase.AuthUsecase) *AuthHandler <span class="cov0" title="0">{
+        return &amp;AuthHandler{usecase: usecase}
+}</span>
+
+var _ port_auth_handler.AuthHandler = &amp;AuthHandler{}
+
+func (h *AuthHandler) Login(c *gin.Context) <span class="cov0" title="0">{
+        var input auth_dtos.AuthDto
+
+        if err := c.ShouldBindJSON(&amp;input); err != nil </span><span class="cov0" title="0">{
+                c.Status(http.StatusBadRequest)
+                c.Error(err).SetType(gin.ErrorTypePublic)
+                return
+        }</span>
+
+        <span class="cov0" title="0">token, err := h.usecase.Login(input.Email, input.Password)
+
+        if err != nil </span><span class="cov0" title="0">{
+                c.Status(http.StatusBadRequest)
+                c.Error(err).SetType(gin.ErrorTypePublic)
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"token": token})</span>
+}
+
+func (h *AuthHandler) Profile(c *gin.Context) <span class="cov0" title="0">{
+        userEmail, _ := c.Get("userEmail")
+        email, err := h.usecase.Profile(userEmail.(string))
+
+        if err != nil </span><span class="cov0" title="0">{
+                c.Status(http.StatusBadRequest)
+                c.Error(err).SetType(gin.ErrorTypePublic)
+                return
+        }</span>
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "message": "Welcome to your profile",
+                "email":   email,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package auth_middleware
+
+import (
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+        port_auth_cryptography "github.com/williamkoller/system-education/internal/auth/port/cryptography"
+)
+
+func AuthMiddleware(jwt port_auth_cryptography.TokenManager) gin.HandlerFunc <span class="cov8" title="1">{
+        return func(c *gin.Context) </span><span class="cov8" title="1">{
+                authHeader := c.GetHeader("Authorization")
+                if len(authHeader) &lt; 7 || authHeader[:7] != "Bearer " </span><span class="cov8" title="1">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid token"})
+                        return
+                }</span>
+                <span class="cov8" title="1">tokenStr := authHeader[7:]
+                claims, err := jwt.Verify(tokenStr)
+                if err != nil </span><span class="cov8" title="1">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+                        return
+                }</span>
+
+                <span class="cov8" title="1">c.Set("userEmail", claims["email"])
+
+                if userID, ok := claims["user_id"]; ok </span><span class="cov8" title="1">{
+                        c.Set("userID", userID)
+                }</span>
+
+                <span class="cov8" title="1">if modules, ok := claims["modules"]; ok </span><span class="cov8" title="1">{
+                        c.Set("modules", modules)
+                }</span>
+
+                <span class="cov8" title="1">if actions, ok := claims["actions"]; ok </span><span class="cov8" title="1">{
+                        c.Set("actions", actions)
+                }</span>
+
+                <span class="cov8" title="1">c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package auth_router
+
+import (
+        "time"
+
+        "github.com/gin-gonic/gin"
+        auth_usecase "github.com/williamkoller/system-education/internal/auth/application/usecase"
+        infra_cryptography "github.com/williamkoller/system-education/internal/auth/infra/cryptography"
+        auth_handler "github.com/williamkoller/system-education/internal/auth/presentation/handler"
+        auth_middleware "github.com/williamkoller/system-education/internal/auth/presentation/middleware"
+        permission_repository "github.com/williamkoller/system-education/internal/permission/infra/db/repository"
+        user_cryptography "github.com/williamkoller/system-education/internal/user/infra/cryptography"
+        user_repository "github.com/williamkoller/system-education/internal/user/infra/db/repository"
+        "gorm.io/gorm"
+)
+
+func AuthRouter(r *gin.Engine, db *gorm.DB, secret string, expiresIn time.Duration) <span class="cov0" title="0">{
+        repository := user_repository.NewUserGormRepository(db)
+        permissionRepo := permission_repository.NewPermissionGormRepository(db)
+        jwt := infra_cryptography.NewJWTTokenManager(secret, expiresIn)
+        crypto := user_cryptography.NewBcryptHasher(12)
+
+        usecase := auth_usecase.NewAuthUsecase(repository, permissionRepo, jwt, crypto)
+        handler := auth_handler.NewAuthHandler(usecase)
+        auth := r.Group("auth")
+        </span><span class="cov0" title="0">{
+                auth.POST("login", handler.Login)
+                auth.POST("profile", auth_middleware.AuthMiddleware(jwt), handler.Profile)
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

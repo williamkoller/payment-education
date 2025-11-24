@@ -31,7 +31,7 @@ func TestModuleAccessMiddleware_Success(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -52,7 +52,7 @@ func TestModuleAccessMiddleware_NoModulesInContext(t *testing.T) {
 	requiredModules := []string{"admin"}
 
 	router := gin.New()
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -79,7 +79,7 @@ func TestModuleAccessMiddleware_InvalidModulesFormat(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -105,7 +105,7 @@ func TestModuleAccessMiddleware_UserHasRequiredModule(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -131,7 +131,7 @@ func TestModuleAccessMiddleware_UserDoesNotHaveRequiredModule(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -157,7 +157,7 @@ func TestModuleAccessMiddleware_EmptyModulesList(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -183,7 +183,7 @@ func TestModuleAccessMiddleware_MultipleModulesMatch(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -210,7 +210,7 @@ func TestModuleAccessMiddleware_ModulesWithNonStringValues(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -237,7 +237,7 @@ func TestModuleAccessMiddleware_NilModuleValue(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -263,7 +263,7 @@ func TestModuleAccessMiddleware_SingleRequiredModuleMatch(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -290,7 +290,7 @@ func TestModuleAccessMiddleware_CaseSensitiveModules(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -317,7 +317,7 @@ func TestModuleAccessMiddleware_SpecialCharactersInModules(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -343,7 +343,7 @@ func TestModuleAccessMiddleware_EmptyRequiredModules(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -370,7 +370,7 @@ func TestModuleAccessMiddleware_NumericModuleNames(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -397,7 +397,7 @@ func TestModuleAccessMiddleware_FirstMatchWins(t *testing.T) {
 		c.Next()
 	})
 
-	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules), func(c *gin.Context) {
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, []string{}), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
@@ -408,4 +408,319 @@ func TestModuleAccessMiddleware_FirstMatchWins(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "success")
+}
+
+// Action Validation Tests
+
+func TestModuleAccessMiddleware_WithValidAction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"read", "delete"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		c.Set("actions", []interface{}{"read", "update"})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "success")
+}
+
+func TestModuleAccessMiddleware_WithoutRequiredAction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"delete"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		c.Set("actions", []interface{}{"read", "update"})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+}
+
+func TestModuleAccessMiddleware_NoActionsInContext(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"read"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		// No actions set in context
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Ações não encontradas no token")
+}
+
+func TestModuleAccessMiddleware_InvalidActionsFormat(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"read"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		c.Set("actions", "invalid-format")
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Formato de ações inválido")
+}
+
+func TestModuleAccessMiddleware_EmptyActionsInContext(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"read"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		c.Set("actions", []interface{}{})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+}
+
+func TestModuleAccessMiddleware_MultipleActionsOneMatches(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"read", "delete", "update"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		c.Set("actions", []interface{}{"delete"})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "success")
+}
+
+func TestModuleAccessMiddleware_ActionsWithNonStringValues(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"read"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		// Mix of string and non-string values
+		c.Set("actions", []interface{}{123, "delete", nil})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	// Should fail because "read" is not in the valid string actions
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+}
+
+func TestModuleAccessMiddleware_BackwardCompatibility_EmptyRequiredActions(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{} // Empty - should skip action validation
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		// No actions set - but should still pass because requiredActions is empty
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "success")
+}
+
+func TestModuleAccessMiddleware_CaseSensitiveActions(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"Read"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"})
+		// User has "read" (lowercase), but required is "Read" (capitalized)
+		c.Set("actions", []interface{}{"read"})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	// Should fail because action names are case-sensitive
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+}
+
+func TestModuleAccessMiddleware_AllCRUDActions(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"users"}
+	requiredActions := []string{"create", "read", "update", "delete"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"users"})
+		c.Set("actions", []interface{}{"create", "read", "update", "delete"})
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "success")
+}
+
+func TestModuleAccessMiddleware_ModuleMatchButNoActionMatch(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	middleware := NewPermissionMiddleware()
+	requiredModules := []string{"admin"}
+	requiredActions := []string{"delete"}
+
+	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("modules", []interface{}{"admin"}) // Module matches
+		c.Set("actions", []interface{}{"read"})  // Action does not match
+		c.Next()
+	})
+
+	router.GET("/test", middleware.ModuleAccessMiddleware(requiredModules, requiredActions), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	// Should fail because action doesn't match even though module does
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
 }
