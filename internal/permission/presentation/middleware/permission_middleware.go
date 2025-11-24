@@ -20,13 +20,13 @@ func (m *PermissionMiddleware) ModuleAccessMiddleware(requiredModules []string, 
 		// Validate modules
 		modulesInterface, ok := c.Get("modules")
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Permissões não encontradas no token"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Permissions not found in token"})
 			return
 		}
 
 		modulesSlice, ok := modulesInterface.([]interface{})
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Formato de permissões inválido"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid permissions format"})
 			return
 		}
 
@@ -52,7 +52,7 @@ func (m *PermissionMiddleware) ModuleAccessMiddleware(requiredModules []string, 
 		}
 
 		if !hasModule {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Acesso negado aos módulos exigidos"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access denied to required modules"})
 			return
 		}
 
@@ -60,13 +60,13 @@ func (m *PermissionMiddleware) ModuleAccessMiddleware(requiredModules []string, 
 		if len(requiredActions) > 0 {
 			actionsInterface, ok := c.Get("actions")
 			if !ok {
-				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Ações não encontradas no token"})
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Actions not found in token"})
 				return
 			}
 
 			actionsSlice, ok := actionsInterface.([]interface{})
 			if !ok {
-				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Formato de ações inválido"})
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid actions format"})
 				return
 			}
 
@@ -92,7 +92,7 @@ func (m *PermissionMiddleware) ModuleAccessMiddleware(requiredModules []string, 
 			}
 
 			if !hasAction {
-				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Acesso negado às ações exigidas"})
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access denied to required actions"})
 				return
 			}
 		}
