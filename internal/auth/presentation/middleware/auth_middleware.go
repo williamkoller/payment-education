@@ -31,6 +31,10 @@ func AuthMiddleware(jwt port_auth_cryptography.TokenManager) gin.HandlerFunc {
 			c.Set("modules", modules)
 		}
 
+		if actions, ok := claims["actions"]; ok {
+			c.Set("actions", actions)
+		}
+
 		c.Next()
 	}
 }

@@ -51,17 +51,17 @@ func UserRouter(e *gin.Engine, db *gorm.DB, apiKey string, fromAddress string, s
 		users.GET("", userHandler.FindAllUsers)
 		users.GET(":id",
 			auth_middleware.AuthMiddleware(jwt),
-			middleware.ModuleAccessMiddleware([]string{"users"}),
+			middleware.ModuleAccessMiddleware([]string{"users"}, []string{"read"}),
 			userHandler.FindByID,
 		)
 		users.PUT(":id",
 			auth_middleware.AuthMiddleware(jwt),
-			middleware.ModuleAccessMiddleware([]string{"users"}),
+			middleware.ModuleAccessMiddleware([]string{"users"}, []string{"update"}),
 			userHandler.Update,
 		)
 		users.DELETE(":id",
 			auth_middleware.AuthMiddleware(jwt),
-			middleware.ModuleAccessMiddleware([]string{"users"}),
+			middleware.ModuleAccessMiddleware([]string{"users"}, []string{"delete"}),
 			userHandler.Delete,
 		)
 	}
