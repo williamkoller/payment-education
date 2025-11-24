@@ -22,6 +22,19 @@ func AuthMiddleware(jwt port_auth_cryptography.TokenManager) gin.HandlerFunc {
 		}
 
 		c.Set("userEmail", claims["email"])
+
+		if userID, ok := claims["user_id"]; ok {
+			c.Set("userID", userID)
+		}
+
+		if modules, ok := claims["modules"]; ok {
+			c.Set("modules", modules)
+		}
+
+		if actions, ok := claims["actions"]; ok {
+			c.Set("actions", actions)
+		}
+
 		c.Next()
 	}
 }
