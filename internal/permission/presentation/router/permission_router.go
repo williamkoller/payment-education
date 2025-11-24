@@ -17,5 +17,9 @@ func PermissionRouter(e *gin.Engine, db *gorm.DB) {
 	{
 		p.POST("", handler.CreatePermission)
 		p.GET("", handler.FindAllPermission)
+		p.GET("/user/:user_id", handler.FindPermissionByUserID)
+		p.PUT("/:id", handler.UpdatePermission)
+		p.DELETE("/:id", handler.DeletePermission)
+		p.GET("/:id", handler.FindPermissionById)
 	}
 }

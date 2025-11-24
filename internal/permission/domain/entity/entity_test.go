@@ -181,3 +181,68 @@ func TestPermission_PullDomainEvents(t *testing.T) {
 		assert.Nil(t, events)
 	})
 }
+
+func TestPermission_UpdatePermission(t *testing.T) {
+	t.Run("should update permission successfully", func(t *testing.T) {
+		p := &Permission{
+			ID:          "123",
+			Modules:     []string{"module1"},
+			Actions:     []string{"read"},
+			Level:       "admin",
+			Description: "test permission",
+		}
+
+		modules := []string{"module2"}
+		actions := []string{"write"}
+		level := "user"
+		description := "updated permission"
+
+		updatedP, err := p.UpdatePermission(&modules, &actions, &level, &description)
+
+		assert.NoError(t, err)
+		assert.Equal(t, modules, updatedP.Modules)
+		assert.Equal(t, actions, updatedP.Actions)
+		assert.Equal(t, level, updatedP.Level)
+		assert.Equal(t, description, updatedP.Description)
+		assert.False(t, updatedP.UpdatedAt.IsZero())
+	})
+
+	t.Run("should partially update permission", func(t *testing.T) {
+		p := &Permission{
+			ID:          "123",
+			Modules:     []string{"module1"},
+			Actions:     []string{"read"},
+			Level:       "admin",
+			Description: "test permission",
+		}
+
+		level := "user"
+
+		updatedP, err := p.UpdatePermission(nil, nil, &level, nil)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"module1"}, updatedP.Modules)
+		assert.Equal(t, []string{"read"}, updatedP.Actions)
+		assert.Equal(t, level, updatedP.Level)
+		assert.Equal(t, "test permission", updatedP.Description)
+		assert.False(t, updatedP.UpdatedAt.IsZero())
+	})
+
+	t.Run("should return error when validation fails", func(t *testing.T) {
+		p := &Permission{
+			ID:          "123",
+			Modules:     []string{"module1"},
+			Actions:     []string{"read"},
+			Level:       "admin",
+			Description: "test permission",
+		}
+
+		level := ""
+
+		updatedP, err := p.UpdatePermission(nil, nil, &level, nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, updatedP)
+		assert.Contains(t, err.Error(), "level cannot be empty")
+	})
+}
