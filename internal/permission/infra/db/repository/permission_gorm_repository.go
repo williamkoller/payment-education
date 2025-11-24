@@ -29,6 +29,9 @@ func (r *PermissionGormRepository) FindByID(id string) (*permission_entity.Permi
 	var permission *permission_entity.Permission
 	model := permission_model.FromEntity(permission)
 	if err := r.DB.First(&model, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, permission_entity.ErrNotFound
+		}
 		return nil, err
 	}
 	return permission_model.ToEntity(model), nil
@@ -45,16 +48,30 @@ func (r *PermissionGormRepository) FindAll() ([]*permission_entity.Permission, e
 
 func (r *PermissionGormRepository) Update(id string, p *permission_entity.Permission) (*permission_entity.Permission, error) {
 	model := permission_model.FromEntity(p)
-	if err := r.DB.Model(&permission_model.Permission{}).
+	result := r.DB.Model(&permission_model.Permission{}).
 		Where("id = ?", id).
-		Updates(&model).Error; err != nil {
-		return nil, err
+		Updates(&model)
+
+	if result.Error != nil {
+		return nil, result.Error
 	}
+
+	if result.RowsAffected == 0 {
+		return nil, permission_entity.ErrNotFound
+	}
+
 	return permission_model.ToEntity(model), nil
 }
 
 func (r *PermissionGormRepository) Delete(id string) error {
-	return r.DB.Unscoped().Delete(&permission_model.Permission{}, "id = ?", id).Error
+	result := r.DB.Unscoped().Delete(&permission_model.Permission{}, "id = ?", id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return permission_entity.ErrNotFound
+	}
+	return nil
 }
 
 func (r *PermissionGormRepository) FindPermissionByUserID(userID string) ([]*permission_entity.Permission, error) {
