@@ -40,6 +40,33 @@ func NewPermission(p *Permission) (*Permission, error) {
 	return permission, nil
 }
 
+func (p *Permission) UpdatePermission(modules, actions *[]string, level, description *string) (*Permission, error) {
+	if modules != nil {
+		p.Modules = *modules
+	}
+
+	if actions != nil {
+		p.Actions = *actions
+	}
+
+	if level != nil {
+		p.Level = *level
+	}
+
+	if description != nil {
+		p.Description = *description
+	}
+
+	p.UpdatedAt = time.Now()
+
+	vp, err := ValidationUpdatePermission(p)
+	if err != nil {
+		return nil, err
+	}
+
+	return vp, nil
+}
+
 func (p *Permission) GetID() string {
 	if p == nil {
 		return ""

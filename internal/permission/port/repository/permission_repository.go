@@ -8,4 +8,5 @@ type PermissionRepository interface {
 	FindPermissionByUserID(userID string) ([]*permission_entity.Permission, error)
 	Update(id string, p *permission_entity.Permission) (*permission_entity.Permission, error)
 	Delete(id string) error
+	FindByID(id string) (*permission_entity.Permission, error)
 }

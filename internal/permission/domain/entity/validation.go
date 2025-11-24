@@ -46,3 +46,17 @@ func ValidatePermission(permission *Permission) (*Permission, error) {
 
 	return permission, nil
 }
+
+func ValidationUpdatePermission(permission *Permission) (*Permission, error) {
+	var errs []string
+
+	if permission.Level == "" {
+		errs = append(errs, "level cannot be empty")
+	}
+
+	if len(errs) > 0 {
+		return nil, &ValidationError{Errors: errs}
+	}
+
+	return permission, nil
+}

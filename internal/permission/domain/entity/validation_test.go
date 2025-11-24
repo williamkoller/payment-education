@@ -126,3 +126,28 @@ func TestValidationError_Error(t *testing.T) {
 
 	assert.Equal(t, "validation failed: error1, error2", err.Error())
 }
+
+func TestValidationUpdatePermission(t *testing.T) {
+	t.Run("should validate update permission successfully", func(t *testing.T) {
+		p := &Permission{
+			Level: "admin",
+		}
+
+		validatedP, err := ValidationUpdatePermission(p)
+
+		assert.NoError(t, err)
+		assert.Equal(t, p, validatedP)
+	})
+
+	t.Run("should return error when level is empty", func(t *testing.T) {
+		p := &Permission{
+			Level: "",
+		}
+
+		validatedP, err := ValidationUpdatePermission(p)
+
+		assert.Error(t, err)
+		assert.Nil(t, validatedP)
+		assert.Contains(t, err.Error(), "level cannot be empty")
+	})
+}
