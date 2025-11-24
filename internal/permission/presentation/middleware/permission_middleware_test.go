@@ -62,7 +62,7 @@ func TestModuleAccessMiddleware_NoModulesInContext(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Permissões não encontradas no token")
+	assert.Contains(t, w.Body.String(), "Permissions not found in token")
 }
 
 func TestModuleAccessMiddleware_InvalidModulesFormat(t *testing.T) {
@@ -89,7 +89,7 @@ func TestModuleAccessMiddleware_InvalidModulesFormat(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Formato de permissões inválido")
+	assert.Contains(t, w.Body.String(), "Invalid permissions format")
 }
 
 func TestModuleAccessMiddleware_UserHasRequiredModule(t *testing.T) {
@@ -141,7 +141,7 @@ func TestModuleAccessMiddleware_UserDoesNotHaveRequiredModule(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado aos módulos exigidos")
+	assert.Contains(t, w.Body.String(), "Access denied to required modules")
 }
 
 func TestModuleAccessMiddleware_EmptyModulesList(t *testing.T) {
@@ -167,7 +167,7 @@ func TestModuleAccessMiddleware_EmptyModulesList(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado aos módulos exigidos")
+	assert.Contains(t, w.Body.String(), "Access denied to required modules")
 }
 
 func TestModuleAccessMiddleware_MultipleModulesMatch(t *testing.T) {
@@ -221,7 +221,7 @@ func TestModuleAccessMiddleware_ModulesWithNonStringValues(t *testing.T) {
 
 	// Should fail because "admin" is not in the valid string modules
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado aos módulos exigidos")
+	assert.Contains(t, w.Body.String(), "Access denied to required modules")
 }
 
 func TestModuleAccessMiddleware_NilModuleValue(t *testing.T) {
@@ -247,7 +247,7 @@ func TestModuleAccessMiddleware_NilModuleValue(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Formato de permissões inválido")
+	assert.Contains(t, w.Body.String(), "Invalid permissions format")
 }
 
 func TestModuleAccessMiddleware_SingleRequiredModuleMatch(t *testing.T) {
@@ -301,7 +301,7 @@ func TestModuleAccessMiddleware_CaseSensitiveModules(t *testing.T) {
 
 	// Should fail because module names are case-sensitive
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado aos módulos exigidos")
+	assert.Contains(t, w.Body.String(), "Access denied to required modules")
 }
 
 func TestModuleAccessMiddleware_SpecialCharactersInModules(t *testing.T) {
@@ -354,7 +354,7 @@ func TestModuleAccessMiddleware_EmptyRequiredModules(t *testing.T) {
 
 	// With empty required modules, should deny access (no match found)
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado aos módulos exigidos")
+	assert.Contains(t, w.Body.String(), "Access denied to required modules")
 }
 
 func TestModuleAccessMiddleware_NumericModuleNames(t *testing.T) {
@@ -465,7 +465,7 @@ func TestModuleAccessMiddleware_WithoutRequiredAction(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+	assert.Contains(t, w.Body.String(), "Access denied to required actions")
 }
 
 func TestModuleAccessMiddleware_NoActionsInContext(t *testing.T) {
@@ -493,7 +493,7 @@ func TestModuleAccessMiddleware_NoActionsInContext(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Ações não encontradas no token")
+	assert.Contains(t, w.Body.String(), "Actions not found in token")
 }
 
 func TestModuleAccessMiddleware_InvalidActionsFormat(t *testing.T) {
@@ -521,7 +521,7 @@ func TestModuleAccessMiddleware_InvalidActionsFormat(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Formato de ações inválido")
+	assert.Contains(t, w.Body.String(), "Invalid actions format")
 }
 
 func TestModuleAccessMiddleware_EmptyActionsInContext(t *testing.T) {
@@ -549,7 +549,7 @@ func TestModuleAccessMiddleware_EmptyActionsInContext(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+	assert.Contains(t, w.Body.String(), "Access denied to required actions")
 }
 
 func TestModuleAccessMiddleware_MultipleActionsOneMatches(t *testing.T) {
@@ -607,7 +607,7 @@ func TestModuleAccessMiddleware_ActionsWithNonStringValues(t *testing.T) {
 
 	// Should fail because "read" is not in the valid string actions
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+	assert.Contains(t, w.Body.String(), "Access denied to required actions")
 }
 
 func TestModuleAccessMiddleware_BackwardCompatibility_EmptyRequiredActions(t *testing.T) {
@@ -665,7 +665,7 @@ func TestModuleAccessMiddleware_CaseSensitiveActions(t *testing.T) {
 
 	// Should fail because action names are case-sensitive
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+	assert.Contains(t, w.Body.String(), "Access denied to required actions")
 }
 
 func TestModuleAccessMiddleware_AllCRUDActions(t *testing.T) {
@@ -722,5 +722,5 @@ func TestModuleAccessMiddleware_ModuleMatchButNoActionMatch(t *testing.T) {
 
 	// Should fail because action doesn't match even though module does
 	assert.Equal(t, http.StatusForbidden, w.Code)
-	assert.Contains(t, w.Body.String(), "Acesso negado às ações exigidas")
+	assert.Contains(t, w.Body.String(), "Access denied to required actions")
 }
